@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "masters": [
     {
       "id": "PS-MASTER-FEMALE-STANDARD",
@@ -7,7 +7,7 @@
       "key": "Female_Standard",
       "sexClass": "female",
       "bodyClass": "standard",
-      "status": "production",
+      "status": "draft",
       "outputs": {
         "TV": {
           "status": "draft",
@@ -55,6 +55,31 @@
           ],
           "base": "masters/Female_Standard/VARIATION_BASE_DRAFT.png"
         }
+      },
+      "artDirection": {
+        "style": "RPG Maker MZ-compatible chibi",
+        "frame": [
+          48,
+          48
+        ],
+        "tvSheet": [
+          144,
+          192
+        ],
+        "directionOrder": [
+          "down",
+          "left",
+          "right",
+          "up"
+        ],
+        "columns": [
+          "walkA",
+          "idle",
+          "walkB"
+        ],
+        "groundYWithinFrame": 44,
+        "approvalRequired": true,
+        "note": "Development placeholder only until artist replaces and approves canonical artwork. Do not author production reusable pieces against an unapproved master."
       }
     },
     {
@@ -63,7 +88,7 @@
       "key": "Male_Standard",
       "sexClass": "male",
       "bodyClass": "standard",
-      "status": "production",
+      "status": "draft",
       "outputs": {
         "TV": {
           "status": "draft",
@@ -111,6 +136,31 @@
           ],
           "base": "masters/Male_Standard/VARIATION_BASE_DRAFT.png"
         }
+      },
+      "artDirection": {
+        "style": "RPG Maker MZ-compatible chibi",
+        "frame": [
+          48,
+          48
+        ],
+        "tvSheet": [
+          144,
+          192
+        ],
+        "directionOrder": [
+          "down",
+          "left",
+          "right",
+          "up"
+        ],
+        "columns": [
+          "walkA",
+          "idle",
+          "walkB"
+        ],
+        "groundYWithinFrame": 44,
+        "approvalRequired": true,
+        "note": "Development placeholder only until artist replaces and approves canonical artwork. Do not author production reusable pieces against an unapproved master."
       }
     }
   ]
