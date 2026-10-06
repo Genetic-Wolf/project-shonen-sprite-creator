@@ -1,0 +1,19 @@
+PROJECT SHONEN SPRITE CREATOR v0.2.0 — ARTIST WORKFLOW
+
+NO CODING KNOWLEDGE IS REQUIRED FOR NORMAL ARTIST USE.
+
+1. Launch the Sprite Creator.
+2. Choose Female Standard or Male Standard.
+3. Click Create Art Workspace to open the Clip Studio-compatible master templates.
+4. Open the matching .ORA master in Clip Studio Paint and save a .CLIP working copy if desired.
+5. Create each reusable piece on its own layer while preserving the 144x192 canvas and the master alignment.
+6. Hide the guide and base-reference layers before export.
+7. Export ONLY the individual piece against transparency as a 144x192 PNG. Never crop or trim transparent space.
+8. Return to Sprite Creator and choose Import Finished Component.
+9. The program validates the image, assigns an internal ID, stores it in the component library, and makes it reusable.
+10. Assemble the character visually and Export RPG MZ when finished.
+
+The artist should never edit Python, JSON, internal IDs, or RPG Maker filenames manually.
+
+STANDALONE WINDOWS TARGET
+The final artist release will be ProjectShonenSpriteCreator.exe with its runtime bundled. Python is only a development/build dependency and should not be installed or used by the artist.

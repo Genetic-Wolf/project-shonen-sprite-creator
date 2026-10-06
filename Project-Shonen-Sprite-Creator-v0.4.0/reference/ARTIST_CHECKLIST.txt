@@ -1,0 +1,16 @@
+PROJECT SHONEN TV COMPONENT CHECKLIST
+[ ] Correct body-family master used
+[ ] Canvas is exactly 144x192
+[ ] Every frame is 48x48
+[ ] Rows are Down / Left / Right / Up
+[ ] Columns are Walk A / Idle / Walk B
+[ ] No crop/trim operation used
+[ ] Transparent background preserved
+[ ] Guide layer hidden from export
+[ ] Base body hidden from component export
+[ ] Ground and center anchors unchanged
+[ ] All 12 cells inspected
+[ ] Left/right asymmetry checked
+[ ] No smoothing/resampling
+[ ] Permanent asset ID assigned
+[ ] Tested composited over canonical base
