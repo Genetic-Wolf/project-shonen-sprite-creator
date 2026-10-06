@@ -2,7 +2,10 @@
 import tkinter as tk,json,os,shutil
 from tkinter import ttk,messagebox
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent
+import app_paths
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 class W(tk.Tk):
  def __init__(self):
   super().__init__();self.title("Project Shonen New Character Art Workspace");self.geometry("560x330")
@@ -18,7 +21,7 @@ class W(tk.Tk):
   d=ROOT/"artist_workspace"/"Characters"/safe;d.mkdir(parents=True,exist_ok=True)
   manifest={"character":self.name.get(),"masterId":m["id"],"masterKey":m["key"],"outputs":{}}
   for k,o in m["outputs"].items():
-   od=d/k;od.mkdir(exist_ok=True);src=ROOT/o["base"]
+   od=d/k;od.mkdir(exist_ok=True);src=app_paths.resolve(o["base"])
    if src.exists():shutil.copy2(src,od/f'{k}_MASTER_REFERENCE_{o["status"].upper()}.png')
    (od/"STATUS.txt").write_text(f'{k}\nMaster status: {o["status"]}\nLocked: {o["locked"]}\nCanvas: {o["size"][0]}x{o["size"][1]}\n',encoding="utf-8")
    manifest["outputs"][k]={"masterStatus":o["status"],"locked":o["locked"]}
