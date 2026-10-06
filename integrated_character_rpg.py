@@ -199,8 +199,7 @@ class RPGInstaller(ttk.Frame):
     if target.exists():
      bd=bak/dest;bd.mkdir(parents=True,exist_ok=True);shutil.copy2(target,bd/p.name);backed+=1
     shutil.copy2(p,target);installed+=1
-  messagebox.showinfo("Installation complete",f"Installed {installed} graphics.
-Backed up {backed} replaced graphics.");self.refresh()
+  messagebox.showinfo("Installation complete",f"Installed {installed} graphics.\\nBacked up {backed} replaced graphics.");self.refresh()
 
 class Health(ttk.Frame):
  def __init__(self,parent):
