@@ -1,23 +1,17 @@
 {
-  "schemaVersion": 1,
-  "version": "0.21.0",
-  "rule": "Never flatten repository paths.",
+  "schemaVersion": 2,
+  "version": "0.22.0",
+  "rule": "Never flatten repository paths. Legacy release folders are forbidden at repository root.",
   "criticalFiles": [
     "ProjectShonenSpriteCreator.py",
     "library.json",
     "master_registry.json",
     "rpgmaker_export_map.json",
     "VERSION.txt",
-    "README.txt"
+    "README.txt",
+    "verify_repository.py"
   ],
-  "topLevelDirectories": [
-    "Project-Shonen-Sprite-Creator-v0.4.0",
-    "assets",
-    "docs",
-    "masters",
-    "templates",
-    "tools",
-    "ui_thumbnails"
-  ],
+  "topLevelDirectories": ["assets","docs","masters","templates","tools","ui_thumbnails"],
+  "forbiddenRootPrefixes": ["Project-Shonen-Sprite-Creator-v0."],
   "artistExecutable": "ProjectShonenSpriteCreator.exe"
 }
