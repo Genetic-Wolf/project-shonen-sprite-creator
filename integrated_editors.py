@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
+import app_paths
 from PIL import Image,ImageTk,ImageDraw
 import json,shutil,os,zipfile,xml.etree.ElementTree as ET
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
 OUTS={"TV":("Walking", (144,192)),"FG":("Face",(144,144)),"TVD":("Downed",(144,192)),"SV":("Battle",(576,384)),"Variation":("Preview",(144,144))}
 def load(p,d):
@@ -67,7 +70,7 @@ class PieceEditor(ttk.Frame):
   ref=None
   if m:
    mo=m["outputs"].get(out,{})
-   p=ROOT/mo.get("base","")
+   p=app_paths.resolve(mo.get("base",""))
    if p.exists() and Image.open(p).size==size:ref=Image.open(p).convert("RGBA")
   layers=[("00_GUIDES_DO_NOT_EXPORT",guide(size,out))]
   if ref is not None:layers.append(("01_BODY_MASTER_REFERENCE_DO_NOT_EXPORT",ref))
