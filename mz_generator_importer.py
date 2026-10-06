@@ -10,9 +10,9 @@ CATEGORY_MAP={
  "Eyebrows":"Face / Eyebrows","Nose":"Face / Nose","Mouth":"Face / Mouth",
  "Ears":"Face / Ears","Beard":"Face / Facial Hair","FacialMark":"Face / Markings",
  "Face":"Face / Shape","Clothing":"Clothing","Cloak":"Outerwear / Cloak",
- "AccA":"Accessories / Head A","AccB":"Accessories / Head B",
+ "AccA":"Accessories / Head A","AccB":"Accessories / Head B","Headband":"Shinobi / Forehead Protector","Hat":"Accessories / Head","Tattoo":"Face / Tattoos",
  "Glasses":"Accessories / Face","BeastEars":"Special / Beast Ears",
- "Tail":"Special / Tail","Wing":"Special / Wings"
+ "Tail":"Special / Tail","Wing":"Special / Wings","Clothing1":"Clothing","Clothing2":"Clothing","Cloak1":"Outerwear / Cloak","Cloak2":"Outerwear / Cloak"
 }
 SEXES=("Female","Male","Kid")
 RX=re.compile(r"^(FG|TV|TVD|SV|icon)_([^_]+?)([12])?_p(\d+)",re.I)
