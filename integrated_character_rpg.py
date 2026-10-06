@@ -145,16 +145,11 @@ class CharacterBuilder(ttk.Frame):
  def export_one(self,out,quiet=False):
   ok,why=self.master_ready(out)
   if not ok:
-   if not quiet:messagebox.showerror("Master not production-ready",why+"
-
-Approve and lock this master output on the Body Masters page first.")
+   if not quiet:messagebox.showerror("Master not production-ready",why+"\\n\\nApprove and lock this master output on the Body Masters page first.")
    return False
   canvas,missing=self.composite(out)
   if canvas is None or missing:
-   if not quiet:messagebox.showerror("Character output incomplete","Complete these assets first:
-
-"+"
-".join(missing))
+   if not quiet:messagebox.showerror("Character output incomplete","Complete these assets first:\\n\\n"+"\\n".join(missing))
    return False
   safe=re.sub(r'[^A-Za-z0-9_-]+','_',self.name.get().strip()) or "Character";d=ROOT/"exports"/out;d.mkdir(parents=True,exist_ok=True)
   if out=="TV":fn=f"${safe}.png"
@@ -164,16 +159,13 @@ Approve and lock this master output on the Body Masters page first.")
   canvas.save(d/fn);return True
  def export(self):
   out=self.preview_out.get()
-  if self.export_one(out):messagebox.showinfo("Output ready",f"{out} artwork was exported successfully.
-
-Use the RPG Maker MZ page to install it safely.")
+  if self.export_one(out):messagebox.showinfo("Output ready",f"{out} artwork was exported successfully.\\n\\nUse the RPG Maker MZ page to install it safely.")
  def export_all(self):
   ready=[];blocked=[]
   for out in ("TV","FG","TVD","SV"):
    if self.export_one(out,quiet=True):ready.append(out)
    else:blocked.append(out)
-  messagebox.showinfo("Character export summary","Exported: "+(", ".join(ready) if ready else "none")+"
-Blocked/incomplete: "+(", ".join(blocked) if blocked else "none"))
+  messagebox.showinfo("Character export summary","Exported: "+(", ".join(ready) if ready else "none")+"\\nBlocked/incomplete: "+(", ".join(blocked) if blocked else "none"))
 
 class RPGInstaller(ttk.Frame):
  def __init__(self,parent):
