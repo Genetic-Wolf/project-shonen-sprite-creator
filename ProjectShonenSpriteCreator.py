@@ -2,7 +2,7 @@
 import tkinter as tk,json,os,subprocess,sys
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
-import embedded_workflows, integrated_editors, integrated_character_rpg
+import embedded_workflows, integrated_editors, integrated_character_rpg, mz_generator_importer
 import app_paths
 ROOT=app_paths.RESOURCE_ROOT
 DATA_ROOT=app_paths.bootstrap()
@@ -48,11 +48,19 @@ class App(tk.Tk):
    mz=tk.StringVar(value=self.cfg.get("rpgMakerProject",""));csp=tk.StringVar(value=self.cfg.get("clipStudio",""))
    ttk.Label(self.content,text="RPG Maker MZ project").pack(anchor="w");ttk.Entry(self.content,textvariable=mz,width=90).pack(anchor="w",pady=4)
    ttk.Button(self.content,text="Choose RPG Maker Project",command=lambda:self.pickdir(mz)).pack(anchor="w")
-   ttk.Label(self.content,text="Clip Studio Paint",padding=(0,14,0,0)).pack(anchor="w");ttk.Entry(self.content,textvariable=csp,width=90).pack(anchor="w",pady=4)
+   ttk.Separator(self.content).pack(fill="x",pady=14)\n   ttk.Label(self.content,text="RPG Maker MZ Generator Library",font=("TkDefaultFont",11,"bold")).pack(anchor="w")\n   ttk.Label(self.content,text="Import the stock generator assets from your own RPG Maker MZ installation or backup ZIP. Assets stay in your private local library.",wraplength=850).pack(anchor="w",pady=(2,6))\n   ttk.Button(self.content,text="Import RPG Maker MZ Generator ZIP",command=self.import_mz_generator).pack(anchor="w",pady=(0,8))\n   ttk.Label(self.content,text="Clip Studio Paint",padding=(0,14,0,0)).pack(anchor="w");ttk.Entry(self.content,textvariable=csp,width=90).pack(anchor="w",pady=4)
    ttk.Button(self.content,text="Choose Clip Studio Paint",command=lambda:self.pickexe(csp)).pack(anchor="w")
    def save():
     self.cfg["rpgMakerProject"]=mz.get();self.cfg["clipStudio"]=csp.get();json.dump(self.cfg,open(SETTINGS,"w",encoding="utf-8"),indent=2);messagebox.showinfo("Saved","Settings saved.")
    ttk.Button(self.content,text="Save Settings",command=save).pack(anchor="w",pady=18)
+ def import_mz_generator(self):
+  p=filedialog.askopenfilename(title="Select RPG Maker MZ generator ZIP",filetypes=[("ZIP archive","*.zip")])
+  if not p:return
+  try:
+   r=mz_generator_importer.import_generator_zip(p)
+   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.\nRegistered {r['componentsAdded']} reusable components.\nSkipped {r['invalidPngsSkipped']} invalid PNG entries.\n\nThe stock artwork remains in your private local Sprite Creator data.")
+   self.page("characters")
+  except Exception as e:messagebox.showerror("Import failed",str(e))
  def run(self,n):
   p=ROOT/n
   if p.exists():subprocess.Popen([sys.executable,str(p)])
