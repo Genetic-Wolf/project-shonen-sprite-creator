@@ -19,8 +19,8 @@ class CharacterBuilder(ttk.Frame):
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
-  masters=[m["name"] for m in self.reg["masters"]];self.master=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
-  cb=ttk.Combobox(top,textvariable=self.master,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",lambda e:self.refresh())
+  masters=[m["name"] for m in self.reg["masters"]];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
+  cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",lambda e:self.refresh())
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+sorted({a.get("category","Other") for a in self.lib["assets"]});cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=10)
@@ -45,7 +45,7 @@ class CharacterBuilder(ttk.Frame):
   ttk.Button(y,text="Save Character Project",command=self.save_project).pack(side="left")
   ttk.Button(y,text="Open Character Project",command=self.open_project).pack(side="left",padx=5)
   self.refresh()
- def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master.get()),None)
+ def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
  def compatible(self,a,m):return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
@@ -126,7 +126,7 @@ class CharacterBuilder(ttk.Frame):
   if not p:return
   data=load(Path(p),{});m=next((m for m in self.reg["masters"] if m.get("id")==data.get("masterId") or m.get("key")==data.get("masterKey")),None)
   if not m:messagebox.showerror("Missing body master","This character references a body master that is not installed.");return
-  self.master.set(m["name"]);self.name.set(data.get("name","Character"));idx={a.get("id"):i for i,a in enumerate(self.lib["assets"])};ids=data.get("layers",[])
+  self.master_name.set(m["name"]);self.name.set(data.get("name","Character"));idx={a.get("id"):i for i,a in enumerate(self.lib["assets"])};ids=data.get("layers",[])
   missing=[x for x in ids if x not in idx];self.selected=[idx[x] for x in ids if x in idx];self.renderstack();self.refresh();self.preview()
   if missing:messagebox.showwarning("Missing pieces","Character opened, but some saved pieces are no longer installed.")
  def export_one(self,out,quiet=False):
