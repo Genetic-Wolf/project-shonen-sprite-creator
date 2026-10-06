@@ -1,8 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
+import app_paths
 import json,re,subprocess,sys
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
 CATEGORIES=["Hair Back","Hair Front","Eyes","Eyebrows","Mouth","Facial Mark","Clothing Back","Clothing Front","Armor","Cloak","Headgear","Accessory Back","Accessory Front","Weapon Back","Weapon Hip","Weapon Hand"]
 CATKEY={x:x.replace(" ","_") for x in CATEGORIES}
