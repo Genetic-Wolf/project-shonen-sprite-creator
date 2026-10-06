@@ -1,0 +1,37 @@
+PROJECT SHONEN SPRITE CREATOR v0.5.0 — MULTI-OUTPUT ASSET WORKFLOW
+
+CORE CHANGE
+A reusable piece now has ONE logical identity and may have several visual representations:
+
+TV        Walking/map sprite
+FG        Face/portrait generator artwork
+TVD       Downed/damaged representation
+SV        Side-view battle artwork
+Variation Generator/library preview
+
+Example:
+PS-HAIR-04217 — Long Ponytail
+  TV         COMPLETE
+  FG         COMPLETE
+  TVD        MISSING
+  SV         IN PROGRESS
+  Variation  COMPLETE
+
+The artist does NOT create five unrelated assets. They select "Long Ponytail" and add/edit whichever representation is needed.
+
+RULES
+1. Never scale TV artwork to make FG or SV art.
+2. Every representation is authored against its own canonical master.
+3. All representations keep the same logical asset ID.
+4. Missing representations are allowed during production and are shown as incomplete.
+5. TV-only characters remain usable while richer outputs are being produced.
+6. The program/library owns technical filenames and IDs.
+7. Artists work with normal names and categories.
+
+CLIP STUDIO
+Each output template remains a normal layered art workspace concept:
+REFERENCE/GUIDES + BASE REFERENCE + DRAW THIS OUTPUT.
+The artist may save a .CLIP copy. Transparent PNG remains the validated interchange/export format.
+
+NEXT PRODUCTION GATE
+Before bulk SV/FG/TVD artwork begins, the corresponding canonical base pose artwork must be artist-approved and then locked just like the TV geometry.

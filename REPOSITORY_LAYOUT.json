@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "version": "0.21.0",
+  "rule": "Never flatten repository paths.",
+  "criticalFiles": [
+    "ProjectShonenSpriteCreator.py",
+    "library.json",
+    "master_registry.json",
+    "rpgmaker_export_map.json",
+    "VERSION.txt",
+    "README.txt"
+  ],
+  "topLevelDirectories": [
+    "Project-Shonen-Sprite-Creator-v0.4.0",
+    "assets",
+    "docs",
+    "masters",
+    "templates",
+    "tools",
+    "ui_thumbnails"
+  ],
+  "artistExecutable": "ProjectShonenSpriteCreator.exe"
+}

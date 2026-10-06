@@ -1,0 +1,270 @@
+PROJECT SHONEN SPRITE CREATOR — CONSOLIDATED HISTORICAL NOTES
+
+===== V0.7.0_MASTER_SYSTEM.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.7.0
+
+MAJOR MILESTONE — CANONICAL MASTER SYSTEM
+
+Male Standard and Female Standard are no longer just hard-coded dropdown labels. They are registered body masters.
+
+Each body master independently tracks:
+• TV base
+• Face/FG base
+• TVD base
+• SV base
+• Variation/preview base
+• required canvas dimensions
+• draft / review / approved / revision status
+• whether geometry is locked
+
+TV remains APPROVED + LOCKED because it is the current production foundation.
+FG/TVD/SV/Variation are intentionally DRAFT until the artist replaces/reviews the base artwork.
+
+WHY LOCKING MATTERS
+Once components are drawn against a canonical master, changing that master's proportions or anchor geometry can invalidate the whole component library. The manager therefore warns before unlocking an approved master.
+
+The New Character Art Workspace utility can create one organized character folder containing every representation and its current master status.
+
+FUTURE BODY TYPES
+The registry is designed for additional independent masters such as:
+Female Small / Standard / Tall / Athletic / Chubby / Heavy
+Male Small / Standard / Tall / Athletic / Chubby / Heavy
+Youth / Child
+and specialized custom bodies.
+
+Bust compatibility remains a clothing/body-fit dimension for female assets rather than being treated as a species or gameplay identity.
+
+===== V0.16.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.16.0
+
+MULTI-OUTPUT CHARACTER PRODUCTION
+
+The integrated Character Builder now supports live readiness/preview for:
+• TV — Walking
+• FG — Face
+• TVD — Downed
+• SV — Side-view battle
+
+OUTPUT PREVIEW
+The artist can switch the live preview between TV, Face, Downed and SV.
+The program displays an appropriate representative frame/cell rather than forcing every output through the Walking preview.
+
+PRODUCTION GATE
+Character exports now require the corresponding body-master output to be both:
+• Approved
+• Locked
+
+Draft or revision geometry cannot silently become production character art.
+
+MULTI-OUTPUT EXPORT
+Artists can export the currently selected representation or use Export All Ready Outputs.
+Incomplete representations are skipped and reported instead of producing broken files.
+
+RPG MAKER STAGING
+Outputs are staged into the existing TV, FG, TVD and SV export folders for safe installation through the integrated RPG Maker MZ page.
+
+This pass moves the creator from Walking-only character assembly toward a complete RPG Maker character-art pipeline.
+
+===== V0.14.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.14.0
+
+FULL NORMAL-WORKFLOW CONSOLIDATION
+
+CHARACTERS
+The modular Character Builder is now inside the main application.
+• Choose a body master.
+• See only compatible reusable pieces.
+• Double-click pieces to equip/remove them by category.
+• Missing Walking artwork blocks an invalid export.
+• Export creates the RPG Maker $ single-character walking sheet automatically.
+
+RPG MAKER MZ
+The installer is now inside the main application.
+• Choose/remember the MZ project.
+• Review staged output counts.
+• Install all ready graphics.
+• Existing same-name files are backed up to timestamped backup folders before replacement.
+
+LIBRARY HEALTH
+A new preflight page detects:
+• duplicate asset IDs;
+• assets referencing missing body masters;
+• outputs marked complete whose PNG is missing;
+• approved master outputs whose canonical file is missing;
+• master outputs that are not yet production-approved.
+
+NO-CODE ARTIST REQUIREMENT
+Normal production no longer requires opening the Character Builder, Asset Studio, Master Manager, or RPG Maker Installer as separate programs. Legacy modules remain in the development package for compatibility/recovery while the unified application becomes authoritative.
+
+===== AUDIT_REPORT_v0.17.0.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.17.0 — AUDIT
+
+Python files compiled: 11
+Registered masters: 2
+Registered reusable assets: 0
+
+FIXED DURING AUDIT
+- Canonical root library.json is now guaranteed. Older builds could keep the registry only in a legacy location while integrated screens expected it at root.
+- Added persistent character save/open projects.
+- Added category filtering to character component browsing.
+
+FINDINGS
+[ERROR] Master — Female Standard: TV base missing
+[ERROR] Master — Male Standard: TV base missing
+
+TEST LIMITS
+- Native Windows .exe execution was not tested because this build environment is Linux.
+- Clip Studio Paint launch/file association and full GUI click-through require Windows acceptance testing.
+- Static compilation/data integrity passing does not replace an artist workflow test on Windows.
+
+FINAL REPAIR PASS
+- Restored Female Standard TV base from masters/Female_Standard/TVD_BASE_DRAFT.png to registered path assets/bases/Female_Standard.png
+- Restored Male Standard TV base from masters/Female_Standard/TVD_BASE_DRAFT.png to registered path assets/bases/Male_Standard.png
+
+FINAL AUDIT RESULT
+[PASS] No remaining compile, JSON, registered-master-file, dimension, duplicate-ID, or completed-output-path defects detected.
+===== V0.17.0_RELEASE_NOTES.txt =====
+v0.17.0
+• Save/open assembled character projects.
+• Category filtering in the Character Builder.
+• Audited Python compilation, JSON parsing, master dimensions, registry references and completed-output paths.
+• Fixed canonical asset-library placement compatibility discovered by the audit.
+• Existing source/development package remains Linux-built; native Windows executable acceptance testing is the next release gate.
+
+===== V0.13.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.13.0
+
+MAJOR INTEGRATION PASS
+
+REUSABLE PIECES
+The five-output production editor is now embedded directly into the main application.
+For a selected reusable piece, the artist can:
+• see TV / Face / TVD / SV / Preview completion;
+• create the correct Clip Studio ORA workspace;
+• use the registered body master as a non-export reference;
+• import the finished transparent PNG;
+• receive canvas validation;
+• keep every representation attached to the same logical piece.
+
+BODY MASTERS
+Canonical body-output management is now embedded directly into the main application.
+The artist can:
+• select a body master;
+• see each output's Draft / Review / Approved / Revision state;
+• see lock state and canvas size;
+• replace master PNG artwork;
+• approve and lock canonical geometry;
+• intentionally unlock it for revision with a compatibility warning.
+
+NO-CODE REQUIREMENT
+Neither workflow requires Python, JSON, internal IDs, terminal use, or RPG Maker filename knowledge.
+
+TRANSITION
+Characters and RPG Maker installation still use their proven specialist windows for now. Reusable Pieces and Body Masters no longer require their old specialist production editors for routine work.
+
+===== V0.15.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.15.0
+
+VISUAL CHARACTER-ASSEMBLY HARDENING
+
+LIVE PREVIEW
+The integrated Character Builder now renders a live enlarged pixel-perfect preview of the down-facing idle frame.
+
+SEARCH
+Compatible reusable pieces can be searched by name or category.
+
+LAYER STACK
+Selected components now have an explicit visible layer stack.
+Artists can move a selected component up or down to resolve special layering needs and remove it without rebuilding the character.
+
+COMPATIBILITY
+Only pieces registered to the selected body master appear in the normal component browser.
+
+READINESS
+The preview reports incomplete Walking assets, missing files and wrong-size layers.
+Invalid characters are blocked from Walking export rather than silently producing broken graphics.
+
+EXPORT
+The exported RPG Maker MZ $ walking sheet preserves the canonical 144x192 canvas and current visual layer order.
+
+NEXT HARDENING TARGET
+Extend the same assembled-character workflow to Face, TVD and SV outputs, add component thumbnails/category filters, and tighten production readiness around approved/locked body masters.
+
+===== V0.11.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.11.0
+
+SINGLE-ENTRY PRODUCTION UI MILESTONE
+
+The application now formally standardizes one normal artist entry point:
+ProjectShonenSpriteCreator.exe
+
+The production workspace is organized around five persistent concepts:
+1. Characters
+2. Reusable Pieces
+3. Body Masters
+4. RPG Maker MZ
+5. Settings
+
+The already-working specialist editors remain available behind these pages during migration, so functionality is preserved while the UI is consolidated.
+
+NO-CODE REQUIREMENT
+Artists are not expected to use Python, terminals, JSON, asset IDs, source code, or RPG Maker filename conventions.
+
+BODY MASTER REQUIREMENT
+Artists can create new Female, Male, Youth, Child, or Custom master bodies, including Small, Standard, Tall, Athletic, Chubby, Heavy, or custom body types. New body artwork remains independent and artist-authored in Clip Studio Paint.
+
+DATA COMPATIBILITY
+Existing library.json and master_registry.json structures are preserved. This pass does not reset previously created assets or masters.
+
+RPG MAKER
+The safe install workflow and timestamped replacement backups from v0.10 remain part of the production architecture.
+
+CLIP STUDIO
+Layered ORA workspaces and transparent PNG interchange remain the art pipeline.
+
+===== V0.10.0_RELEASE_NOTES.txt =====
+v0.10.0 MAJOR MILESTONE
+
+• One primary Project Shonen Sprite Creator launcher.
+• Artist-facing workflow remains no-code.
+• Added safe RPG Maker MZ Install Manager.
+• RPG Maker project root validation.
+• Output-specific export staging folders.
+• Existing same-name RPG Maker graphics are automatically backed up before replacement.
+• Timestamped backups.
+• Added visual master thumbnail generation.
+• Clarified final Artist Edition vs maintainer/developer files.
+• New body-master creation remains available from the unified home screen.
+• Clip Studio ORA -> transparent PNG remains the canonical art interchange workflow.
+
+NEXT PRODUCTION PRIORITY
+Bring the remaining child workflow screens into a true single-window/tabbed UI and finish native Windows packaging/testing on Windows. The architecture now avoids requiring the artist to understand any build/development technology.
+
+===== V0.12.0_RELEASE_NOTES.txt =====
+PROJECT SHONEN SPRITE CREATOR v0.12.0
+
+EMBEDDED CREATION WORKFLOW MILESTONE
+
+NEW PIECES
+The main Project Shonen Sprite Creator now opens a normal graphical Create Reusable Piece form.
+The artist supplies:
+• normal piece name
+• category
+• compatible body master
+
+The application assigns the permanent internal ID and initializes all five visual representations automatically.
+
+NEW BODY MASTERS
+The main application now exposes Create New Master Body Sprite as an artist-facing graphical workflow.
+The artist chooses:
+• Female / Male / Youth / Child / Custom
+• Small / Standard / Tall / Athletic / Chubby / Heavy / Custom
+• a normal display name
+• an optional existing master used only as an alignment reference
+
+No code, JSON, internal IDs, RPG Maker naming, or terminal use is part of either workflow.
+
+MIGRATION SAFETY
+The existing proven Clip Studio ORA generators are retained behind the new embedded forms during this pass. This preserves functionality while progressively removing the separate-tool experience.
+
+Existing libraries and master registries remain compatible.

@@ -1,0 +1,21 @@
+PROJECT SHONEN SPRITE CREATOR v0.6.0
+
+MAJOR MILESTONE
+The multi-output architecture is now integrated into one artist-facing Asset Studio.
+
+NORMAL WORKFLOW
+1. Choose Female Standard or Male Standard.
+2. Create or select ONE reusable piece.
+3. The same screen shows Walking, Face, Downed, Battle, and Preview completion.
+4. Click Create Clip Studio Workspace beside whichever representation you want to draw.
+5. Open the generated ORA in Clip Studio Paint.
+6. Draw on the dedicated DRAW layer.
+7. Export transparent PNG.
+8. Click Import Finished PNG beside that same representation.
+9. The creator validates dimensions and attaches it to the existing logical asset automatically.
+
+The artist never needs to create IDs or edit JSON.
+
+PRODUCTION SAFETY
+TV has the approved walking base geometry.
+The additional output canvases and grids are integrated, but their final character/body pose artwork should be locked only after artist approval. Do not bulk-produce Face/TVD/SV components against an unapproved base pose.

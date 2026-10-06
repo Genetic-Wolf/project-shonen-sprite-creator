@@ -1,0 +1,24 @@
+PROJECT SHONEN SPRITE CREATOR — ARTIST EDITION CONTENTS
+
+The eventual Windows artist distribution should expose:
+• ProjectShonenSpriteCreator.exe
+• Start Here shortcut
+• Artist Workspaces
+• Exports
+• Backups
+• internal assets/templates required by the application
+
+It should NOT require the artist to interact with:
+• .py source files
+• .spec files
+• BUILD_*.bat files
+• JSON registries/settings
+• Python/pip/PyInstaller
+• command prompt or PowerShell
+
+NORMAL USE
+Launch ProjectShonenSpriteCreator.exe and use the graphical interface.
+
+RPG MAKER SAFETY
+The Install Manager backs up an existing same-named target PNG before replacing it.
+Backups are timestamped and kept outside the RPG Maker project.

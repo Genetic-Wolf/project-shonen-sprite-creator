@@ -1,2 +1,1 @@
-Project Shonen Sprite Creator v0.4.0
-Artist Workflow / RPG Maker Direct Install Pass
+Project Shonen Sprite Creator v0.21.0 — Repository Normalization
