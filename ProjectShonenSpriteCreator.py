@@ -3,11 +3,13 @@ import tkinter as tk,json,os,subprocess,sys
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
 import embedded_workflows, integrated_editors, integrated_character_rpg
-ROOT=Path(__file__).resolve().parent
-SETTINGS=ROOT/"artist_settings.json"
+import app_paths
+ROOT=app_paths.RESOURCE_ROOT
+DATA_ROOT=app_paths.bootstrap()
+SETTINGS=DATA_ROOT/"artist_settings.json"
 class App(tk.Tk):
  def __init__(self):
-  super().__init__();self.title("Project Shonen Sprite Creator v0.14.0");self.geometry("1280x800");self.minsize(1080,680)
+  super().__init__();self.title("Project Shonen Sprite Creator v0.22.0");self.geometry("1280x800");self.minsize(1080,680)
   try:self.cfg=json.load(open(SETTINGS,encoding="utf-8"))
   except:self.cfg={}
   self.build();self.page("characters")
@@ -60,4 +62,7 @@ class App(tk.Tk):
  def pickexe(self,v):
   p=filedialog.askopenfilename(filetypes=[("Windows program","*.exe"),("All files","*.*")])
   if p:v.set(p)
-App().mainloop()
+if __name__ == "__main__":
+ if "--self-test" in sys.argv:
+  print(json.dumps(app_paths.self_test(), indent=2)); sys.exit(0 if app_paths.self_test()["ok"] else 1)
+ App().mainloop()
