@@ -92,23 +92,27 @@ class CharacterBuilder(ttk.Frame):
   for i in self.selected:
    a=self.lib["assets"][i];o=a.get("outputs",{}).get(out,{})
    if o.get("status")!="complete" or not o.get("path"):missing.append(f'{a["name"]} ({out})');continue
-   q=ROOT/o["path"]
-   if q.exists():
-    im=Image.open(q).convert("RGBA")
-    if im.size==canvas.size:canvas.alpha_composite(im)
-    else:missing.append(f'{a["name"]} ({out} wrong size)')
-   else:missing.append(f'{a["name"]} ({out} file missing)')
+   paths=o.get("paths") or ([o.get("path")] if o.get("path") else [])
+   for rel in paths:
+    q=app_paths.resolve(rel)
+    if q.exists():
+     im=Image.open(q).convert("RGBA")
+     if im.size==canvas.size:canvas.alpha_composite(im)
+     else:missing.append(f'{a["name"]} ({out} wrong size)')
+    else:missing.append(f'{a["name"]} ({out} file missing)')
   return canvas,missing
  def master_ready(self,out):
   m=self.currentmaster()
   if not m:return False,"No body master selected"
   o=m["outputs"].get(out,{})
+  if o.get("status")=="reference" and o.get("locked"):return True,""
   if o.get("status")!="approved" or not o.get("locked"):return False,f"{out} body master is not Approved + Locked"
   return True,""
  def preview(self):
   out=self.preview_out.get();im,missing=self.composite(out);self.canvas.delete("all")
   if im is None:self.readiness.set(f"{out} preview unavailable.");return
-  if out in ("TV","TVD"):frame=im.crop((48,0,96,48))
+  if out=="TV":frame=im.crop((48,0,96,48))
+  elif out=="TVD":frame=im.crop((48,0,96,48)) if im.width>=96 else im
   elif out=="SV":frame=im.crop((0,0,64,64))
   else:frame=im
   frame.thumbnail((320,320),Image.Resampling.NEAREST)
