@@ -2,10 +2,13 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
+import app_paths
 from PIL import Image, ImageTk, ImageDraw
 import json, shutil, os, zipfile, xml.etree.ElementTree as ET
 
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 OUTPUTS={
  "TV":{"label":"Walking (TV)","size":(144,192),"help":"Map/walking sprite component"},
  "FG":{"label":"Face (FG)","size":(144,144),"help":"Face generator component"},
@@ -110,7 +113,7 @@ class App(tk.Tk):
  def base_for(self,out):
   # Use approved TV bases where available. Other outputs get reference-safe blank until their pose master is approved.
   if out=="TV":
-   p=ROOT/"assets/bases"/f"{self.body.get()}.png"
+   p=app_paths.resolve(Path("assets/bases")/f"{self.body.get()}.png")
    if p.exists():return Image.open(p).convert("RGBA")
   return Image.new("RGBA",OUTPUTS[out]["size"],(0,0,0,0))
  def create_workspace(self,out):
