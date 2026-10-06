@@ -2,8 +2,11 @@
 import tkinter as tk,json,os,shutil
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
+import app_paths
 from PIL import Image,ImageTk
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 REG=ROOT/"master_registry.json"
 OUTS=["TV","FG","TVD","SV","Variation"]
 class M(tk.Tk):
@@ -43,7 +46,7 @@ class M(tk.Tk):
  def preview(self):
   m=self.master();s=self.tree.selection()
   if not m or not s:return
-  p=ROOT/m["outputs"][s[0]]["base"]
+  p=app_paths.resolve(m["outputs"][s[0]]["base"])
   self.canvas.delete("all")
   if p.exists():
    im=Image.open(p).convert("RGBA");bg=Image.new("RGBA",im.size,(55,59,66,255));bg.alpha_composite(im);bg.thumbnail((500,330),Image.Resampling.NEAREST);self.pic=ImageTk.PhotoImage(bg);self.canvas.create_image(260,165,image=self.pic)
