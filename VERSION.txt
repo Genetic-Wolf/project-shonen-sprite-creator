@@ -1,1 +1,1 @@
-Project Shonen Sprite Creator v0.21.0 — Repository Normalization
+Project Shonen Sprite Creator v0.22.0 — Canonical Base & Runtime Hardening
