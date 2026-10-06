@@ -1,6 +1,0 @@
-v0.17.0
-• Save/open assembled character projects.
-• Category filtering in the Character Builder.
-• Audited Python compilation, JSON parsing, master dimensions, registry references and completed-output paths.
-• Fixed canonical asset-library placement compatibility discovered by the audit.
-• Existing source/development package remains Linux-built; native Windows executable acceptance testing is the next release gate.
