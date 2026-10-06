@@ -2,8 +2,11 @@
 import tkinter as tk,json,re,os,shutil,zipfile,xml.etree.ElementTree as ET
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
+import app_paths
 from PIL import Image,ImageDraw
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 REG=ROOT/"master_registry.json"
 OUTS={"TV":(144,192),"FG":(144,144),"TVD":(144,192),"SV":(576,384),"Variation":(144,144)}
 class Wizard(tk.Tk):
@@ -49,7 +52,7 @@ class Wizard(tk.Tk):
    # Parent is reference only; never copied into the DRAW layer.
    ref=None
    if parent:
-    pp=ROOT/parent["outputs"][out]["base"]
+    pp=app_paths.resolve(parent["outputs"][out]["base"])
     if pp.exists() and Image.open(pp).size==size:ref=Image.open(pp).convert("RGBA")
    guide=Image.new("RGBA",size,(0,0,0,0));d=ImageDraw.Draw(guide);d.rectangle((0,0,size[0]-1,size[1]-1),outline=(255,210,0,180))
    if out in ("TV","TVD"):
