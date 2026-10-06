@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk,messagebox,filedialog
 from pathlib import Path
+import app_paths
 from PIL import Image,ImageTk
 import json,shutil,time,re
-ROOT=Path(__file__).resolve().parent
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 LIB=ROOT/"library.json";REG=ROOT/"master_registry.json";SET=ROOT/"artist_settings.json"
 DEST={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}
 def load(p,d):
@@ -78,7 +81,7 @@ class CharacterBuilder(ttk.Frame):
   m=self.currentmaster()
   if not m:return None,[]
   mo=m["outputs"].get(out,{})
-  base=ROOT/mo.get("base","")
+  base=app_paths.resolve(mo.get("base",""))
   if not base.exists():return None,[f"Body master {out} artwork is missing"]
   canvas=Image.open(base).convert("RGBA");missing=[]
   for i in self.selected:
@@ -200,7 +203,7 @@ class Health(ttk.Frame):
     if o.get("status")=="complete" and (not o.get("path") or not (ROOT/o["path"]).exists()):issues.append(("ERROR",a.get("name",""),f"{k} marked complete but file is missing"))
   for m in reg["masters"]:
    for k,o in m["outputs"].items():
-    p=ROOT/o.get("base","")
+    p=app_paths.resolve(o.get("base",""))
     if o.get("status")=="approved" and not p.exists():issues.append(("ERROR",m["name"],f"Approved {k} master file is missing"))
     if o.get("status")!="approved":issues.append(("INFO",m["name"],f"{k} is not production-approved"))
   ttk.Label(self,text=f"Library Health: {len([x for x in issues if x[0]=='ERROR'])} errors, {len([x for x in issues if x[0]=='INFO'])} readiness notices",font=("TkDefaultFont",12,"bold")).pack(anchor="w",pady=(0,8))
