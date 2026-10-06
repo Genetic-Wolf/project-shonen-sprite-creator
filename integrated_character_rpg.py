@@ -8,7 +8,18 @@ ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
 LIB=ROOT/"library.json";REG=ROOT/"master_registry.json";SET=ROOT/"artist_settings.json"
-DEST={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}
+DEST={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}\nCUSTOMIZATION_FIELDS=[
+ ("Face",["Face / Shape","Face / Eyes","Face / Eyebrows","Face / Nose","Face / Mouth","Face / Ears","Face / Facial Hair","Face / Markings","Face / Dōjutsu","Face / Scars","Face / Tattoos","Face / Clan Markings"]),
+ ("Hair",["Hair / Rear","Hair / Main","Hair / Front","Hair / Ponytail","Hair / Accessories"]),
+ ("Clothing",["Clothing / Undershirt","Clothing / Shirt","Clothing / Pants","Clothing / Skirt","Clothing / Belt","Clothing / Gloves","Clothing / Shoes","Clothing"]),
+ ("Armor",["Armor / Chest","Armor / Shoulders","Armor / Arms","Armor / Legs","Armor"]),
+ ("Shinobi",["Shinobi / Forehead Protector","Shinobi / Village Symbol","Shinobi / Tool Pouch","Shinobi / Kunai Holster","Shinobi / Scrolls"]),
+ ("Outerwear",["Outerwear / Vest","Outerwear / Coat","Outerwear / Robe","Outerwear / Cloak"]),
+ ("Accessories",["Accessories / Head","Accessories / Head A","Accessories / Head B","Accessories / Face","Accessories / Neck","Accessories / Hands","Accessories / Back"]),
+ ("Weapons",["Weapons / Back","Weapons / Left Hip","Weapons / Right Hip","Weapons / Left Hand","Weapons / Right Hand"]),
+ ("Special",["Special / Tail","Special / Wings","Special / Beast Ears","Special / Clan Features","Special / Transformation Features"])
+]
+
 def load(p,d):
  try:return json.load(open(p,encoding="utf-8"))
  except:return d
@@ -25,13 +36,19 @@ class CharacterBuilder(ttk.Frame):
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+sorted({a.get("category","Other") for a in self.lib["assets"]});cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=10)
   left=ttk.Frame(pan);mid=ttk.Frame(pan);right=ttk.Frame(pan);pan.add(left,weight=3);pan.add(mid,weight=2);pan.add(right,weight=3)
-  ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
+  ttk.Label(left,text="Customization",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
+  slots=ttk.Frame(left);slots.pack(fill="x",pady=(2,6))
+  for group,fields in CUSTOMIZATION_FIELDS:
+   ttk.Button(slots,text=group,command=lambda fs=fields:self.show_fields(fs)).pack(side="left",padx=1,pady=1)
+  self.field_hint=tk.StringVar(value="All customization fields are available. Choose a group above or use Category.")
+  ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,5))
+  ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add)
   ttk.Label(mid,text="Selected Components",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   ttk.Label(mid,text="The base body is always present. Hair, face, clothing and other parts start empty.",wraplength=250).pack(anchor="w",pady=(0,5))
   self.sel=tk.Listbox(mid);self.sel.pack(fill="both",expand=True)
   b=ttk.Frame(mid);b.pack(fill="x",pady=5)
-  ttk.Button(b,text="↑",width=4,command=lambda:self.move(-1)).pack(side="left");ttk.Button(b,text="↓",width=4,command=lambda:self.move(1)).pack(side="left",padx=3);ttk.Button(b,text="Remove",command=self.remove).pack(side="left")
+  ttk.Button(b,text="↑",width=4,command=lambda:self.move(-1)).pack(side="left");ttk.Button(b,text="↓",width=4,command=lambda:self.move(1)).pack(side="left",padx=3);ttk.Button(b,text="Remove / None",command=self.remove).pack(side="left");ttk.Button(b,text="Clear All",command=self.clear_components).pack(side="left",padx=3)
   ph=ttk.Frame(right);ph.pack(fill="x")
   ttk.Label(ph,text="Live Preview",font=("TkDefaultFont",11,"bold")).pack(side="left")
   ttk.Combobox(ph,textvariable=self.preview_out,values=["TV","FG","TVD","SV"],state="readonly",width=10).pack(side="right")
@@ -47,6 +64,16 @@ class CharacterBuilder(ttk.Frame):
   ttk.Button(y,text="Save Character Project",command=self.save_project).pack(side="left")
   ttk.Button(y,text="Open Character Project",command=self.open_project).pack(side="left",padx=5)
   self.refresh()
+ def show_fields(self,fields):
+  available={a.get("category","Other") for a in self.lib.get("assets",[])}
+  choices=[x for x in fields if x in available]
+  if choices:
+   self.category.set(choices[0]);self.field_hint.set("Fields: "+", ".join(fields)+". Use Category to select any individual field.")
+  else:
+   self.category.set("All");self.field_hint.set("These fields are accessible but no compatible artwork has been imported/created for them yet: "+", ".join(fields))
+  self.refresh()
+ def clear_components(self):
+  self.selected=[];self.renderstack();self.preview()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
  def on_master_changed(self,event=None):
   # A body change invalidates layers selected for the previous geometry.
