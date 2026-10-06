@@ -1,0 +1,54 @@
+{
+  "version": "0.1.0",
+  "template": {
+    "schemaVersion": 1,
+    "templateVersion": "1.0.0",
+    "system": "Project Shonen / RPG Maker MZ",
+    "canonicalTV": {
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "columns": 3,
+      "rows": 4,
+      "sheetWidth": 144,
+      "sheetHeight": 192,
+      "directions": [
+        "down",
+        "left",
+        "right",
+        "up"
+      ],
+      "groundYWithinFrame": 44,
+      "centerXWithinFrame": 24
+    },
+    "bodyFamilies": [
+      "Male_Standard",
+      "Female_Standard"
+    ],
+    "rules": {
+      "trimTransparentPixels": false,
+      "resampling": "nearest-neighbor-only",
+      "format": "PNG RGBA",
+      "componentCanvasMustMatchBase": true,
+      "guidesMustNotBeExported": true
+    },
+    "componentSlots": [
+      "Hair_Back",
+      "Hair_Front",
+      "Eyes",
+      "Eyebrows",
+      "Mouth",
+      "FacialMark",
+      "Clothing_Back",
+      "Clothing_Front",
+      "Armor",
+      "Cloak",
+      "Headgear",
+      "Accessory_Back",
+      "Accessory_Front",
+      "Weapon_Back",
+      "Weapon_Hip",
+      "Weapon_Hand"
+    ]
+  },
+  "assets": []
+}

@@ -1,0 +1,3 @@
+MAINTAINER ONLY
+The Python sources, PyInstaller spec and BUILD_WINDOWS_ARTIST_EDITION.bat are development/build inputs.
+They should remain in the development repository, not presented as normal artist controls in the final Windows distribution.

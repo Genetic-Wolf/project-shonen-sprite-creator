@@ -1,0 +1,6 @@
+v0.20.0 DISTRIBUTION AUDIT
+Source compile: PASS
+Artist launcher invokes Python: NO
+Development material isolated: PASS
+Single-update policy: PASS
+Native Windows EXE: NOT BUILT — Windows runner still required

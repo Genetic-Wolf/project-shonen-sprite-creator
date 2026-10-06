@@ -1,0 +1,75 @@
+{
+  "version": "0.5.0",
+  "outputs": {
+    "TV": {
+      "purpose": "walking/map sprite",
+      "canvas": [
+        144,
+        192
+      ],
+      "frame": [
+        48,
+        48
+      ],
+      "grid": [
+        3,
+        4
+      ],
+      "rows": [
+        "Down",
+        "Left",
+        "Right",
+        "Up"
+      ],
+      "columns": [
+        "Walk A",
+        "Idle",
+        "Walk B"
+      ]
+    },
+    "FG": {
+      "purpose": "face generator representation",
+      "finishedFaceCell": [
+        144,
+        144
+      ],
+      "note": "Component artwork uses the canonical face master; do not scale TV art."
+    },
+    "TVD": {
+      "purpose": "downed/damaged generator representation",
+      "note": "Uses its own canonical pose master; do not rotate TV frames."
+    },
+    "SV": {
+      "purpose": "side-view battle representation",
+      "canvas": [
+        576,
+        384
+      ],
+      "frame": [
+        64,
+        64
+      ],
+      "grid": [
+        9,
+        6
+      ],
+      "frames": 54
+    },
+    "Variation": {
+      "purpose": "generator selection thumbnail",
+      "note": "Preview/icon representation linked to the same logical asset ID."
+    }
+  },
+  "logicalAssetRule": "One logical Project Shonen asset ID owns all output representations.",
+  "requiredForTVOnly": [
+    "TV",
+    "Variation"
+  ],
+  "recommendedComplete": [
+    "TV",
+    "FG",
+    "TVD",
+    "SV",
+    "Variation"
+  ]
+}

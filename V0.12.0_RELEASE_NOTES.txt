@@ -1,0 +1,27 @@
+PROJECT SHONEN SPRITE CREATOR v0.12.0
+
+EMBEDDED CREATION WORKFLOW MILESTONE
+
+NEW PIECES
+The main Project Shonen Sprite Creator now opens a normal graphical Create Reusable Piece form.
+The artist supplies:
+• normal piece name
+• category
+• compatible body master
+
+The application assigns the permanent internal ID and initializes all five visual representations automatically.
+
+NEW BODY MASTERS
+The main application now exposes Create New Master Body Sprite as an artist-facing graphical workflow.
+The artist chooses:
+• Female / Male / Youth / Child / Custom
+• Small / Standard / Tall / Athletic / Chubby / Heavy / Custom
+• a normal display name
+• an optional existing master used only as an alignment reference
+
+No code, JSON, internal IDs, RPG Maker naming, or terminal use is part of either workflow.
+
+MIGRATION SAFETY
+The existing proven Clip Studio ORA generators are retained behind the new embedded forms during this pass. This preserves functionality while progressively removing the separate-tool experience.
+
+Existing libraries and master registries remain compatible.

@@ -1,0 +1,3 @@
+PASS — Python compilation and structural release preflight passed.
+
+Remaining release gate: native Windows build + acceptance checklist.

@@ -1,0 +1,29 @@
+PROJECT SHONEN SPRITE CREATOR v0.13.0
+
+MAJOR INTEGRATION PASS
+
+REUSABLE PIECES
+The five-output production editor is now embedded directly into the main application.
+For a selected reusable piece, the artist can:
+• see TV / Face / TVD / SV / Preview completion;
+• create the correct Clip Studio ORA workspace;
+• use the registered body master as a non-export reference;
+• import the finished transparent PNG;
+• receive canvas validation;
+• keep every representation attached to the same logical piece.
+
+BODY MASTERS
+Canonical body-output management is now embedded directly into the main application.
+The artist can:
+• select a body master;
+• see each output's Draft / Review / Approved / Revision state;
+• see lock state and canvas size;
+• replace master PNG artwork;
+• approve and lock canonical geometry;
+• intentionally unlock it for revision with a compatibility warning.
+
+NO-CODE REQUIREMENT
+Neither workflow requires Python, JSON, internal IDs, terminal use, or RPG Maker filename knowledge.
+
+TRANSITION
+Characters and RPG Maker installation still use their proven specialist windows for now. Reusable Pieces and Body Masters no longer require their old specialist production editors for routine work.

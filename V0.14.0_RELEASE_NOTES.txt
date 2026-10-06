@@ -1,0 +1,29 @@
+PROJECT SHONEN SPRITE CREATOR v0.14.0
+
+FULL NORMAL-WORKFLOW CONSOLIDATION
+
+CHARACTERS
+The modular Character Builder is now inside the main application.
+• Choose a body master.
+• See only compatible reusable pieces.
+• Double-click pieces to equip/remove them by category.
+• Missing Walking artwork blocks an invalid export.
+• Export creates the RPG Maker $ single-character walking sheet automatically.
+
+RPG MAKER MZ
+The installer is now inside the main application.
+• Choose/remember the MZ project.
+• Review staged output counts.
+• Install all ready graphics.
+• Existing same-name files are backed up to timestamped backup folders before replacement.
+
+LIBRARY HEALTH
+A new preflight page detects:
+• duplicate asset IDs;
+• assets referencing missing body masters;
+• outputs marked complete whose PNG is missing;
+• approved master outputs whose canonical file is missing;
+• master outputs that are not yet production-approved.
+
+NO-CODE ARTIST REQUIREMENT
+Normal production no longer requires opening the Character Builder, Asset Studio, Master Manager, or RPG Maker Installer as separate programs. Legacy modules remain in the development package for compatibility/recovery while the unified application becomes authoritative.

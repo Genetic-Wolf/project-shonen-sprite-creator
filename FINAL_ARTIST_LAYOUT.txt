@@ -1,0 +1,7 @@
+FINAL ARTIST ZIP:
+ProjectShonenSpriteCreator.exe
+README.txt
+Project Shonen Sprite Creator Data/
+
+No Python/source/build scripts or patch-note collections should be visible.
+Each future release has one consolidated Update.zip.

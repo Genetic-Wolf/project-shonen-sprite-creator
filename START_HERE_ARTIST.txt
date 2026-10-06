@@ -1,0 +1,40 @@
+PROJECT SHONEN SPRITE CREATOR — ARTIST EDITION
+
+NORMAL ARTIST USE
+1. Launch ProjectShonenSpriteCreator.exe.
+2. Complete Setup once:
+   • choose the RPG Maker MZ project folder;
+   • optionally choose Clip Studio Paint.
+3. Choose what you want to make:
+   • Build a Character
+   • Create a New Piece
+   • Create a New Body Master
+   • Manage Body Masters
+   • Character Art Workspace
+   • Asset Completion
+4. Use the generated ORA files in Clip Studio Paint.
+5. Save a .CLIP working copy if desired.
+6. Export the requested transparent PNG.
+7. Return to Project Shonen Sprite Creator and import it.
+8. The program validates dimensions, IDs and body compatibility.
+9. Finished game graphics are exported/installed into the configured RPG Maker MZ project.
+
+YOU SHOULD NOT NEED TO:
+• install or understand Python;
+• use a terminal;
+• edit JSON;
+• assign asset IDs;
+• rename files to RPG Maker conventions manually;
+• browse RPG Maker generator internals;
+• edit program source.
+
+NEW MASTER BODY SPRITES
+Use "Create a New Body Master".
+You can choose Female, Male, Youth, Child or Custom, then Small, Standard, Tall, Athletic, Chubby, Heavy or Custom.
+A previous master can be used as a visual reference, but the new body is drawn independently in Clip Studio.
+The program creates TV, Face, TVD, SV and preview master workspaces automatically.
+After artwork is reviewed, approve and lock the master before producing large quantities of compatible components.
+
+IMPORTANT ABOUT THIS ZIP
+This package contains the complete source/development project plus Windows packaging configuration.
+The final Artist Edition is intended to be distributed as ProjectShonenSpriteCreator.exe with its supporting data, so the artist does not install Python.

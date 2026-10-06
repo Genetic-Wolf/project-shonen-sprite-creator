@@ -1,0 +1,23 @@
+{
+  "product": "Project Shonen Sprite Creator",
+  "version": "0.20.0",
+  "platform": "Windows 10/11 x64",
+  "artistRequiresPython": false,
+  "artistRequiresTerminal": false,
+  "entryPoint": "ProjectShonenSpriteCreator.exe",
+  "distributionMode": "portable-folder",
+  "requiredArtistFiles": [
+    "ProjectShonenSpriteCreator.exe",
+    "Launch Project Shonen Sprite Creator.bat",
+    "ARTIST_README.txt"
+  ],
+  "writableRuntimeFolders": [
+    "character_projects",
+    "artist_workspace",
+    "exports",
+    "backups"
+  ],
+  "releaseGate": "native Windows EXE build and clean-machine acceptance test",
+  "artistEntryPoint": "ProjectShonenSpriteCreator.exe",
+  "updatePolicy": "one consolidated update ZIP per version"
+}

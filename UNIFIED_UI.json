@@ -1,0 +1,13 @@
+{
+  "version": "0.11.0",
+  "singleEntryPoint": "ProjectShonenSpriteCreator.exe",
+  "pages": [
+    {"name":"Characters","purpose":"Build modular characters or create complete character art workspaces"},
+    {"name":"Reusable Pieces","purpose":"Create, browse, edit and complete reusable art across TV, FG, TVD, SV and Variation"},
+    {"name":"Body Masters","purpose":"Create new master body sprites, review canonical art, approve and lock geometry"},
+    {"name":"RPG Maker MZ","purpose":"Review staged exports and install them with automatic backups"},
+    {"name":"Settings","purpose":"Choose RPG Maker MZ and Clip Studio Paint using graphical file pickers"}
+  ],
+  "artistMustNotNeed":["Python","terminal","JSON editing","manual asset IDs","manual RPG Maker filenames","source code"],
+  "migrationRule":"Existing library.json and master_registry.json data must remain compatible."
+}

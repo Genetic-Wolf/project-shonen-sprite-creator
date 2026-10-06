@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "masters": [
+    {
+      "id": "PS-MASTER-FEMALE-STANDARD",
+      "name": "Female Standard",
+      "key": "Female_Standard",
+      "sexClass": "female",
+      "bodyClass": "standard",
+      "status": "production",
+      "outputs": {
+        "TV": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            192
+          ],
+          "base": "assets/bases/Female_Standard.png",
+          "recoveryNote": "v0.18 safety reset: canonical TV artwork requires visual replacement/approval; v0.17 cross-master fallback was rejected."
+        },
+        "FG": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            144
+          ],
+          "base": "masters/Female_Standard/FG_BASE_DRAFT.png"
+        },
+        "TVD": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            192
+          ],
+          "base": "masters/Female_Standard/TVD_BASE_DRAFT.png"
+        },
+        "SV": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            576,
+            384
+          ],
+          "base": "masters/Female_Standard/SV_BASE_DRAFT.png"
+        },
+        "Variation": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            144
+          ],
+          "base": "masters/Female_Standard/VARIATION_BASE_DRAFT.png"
+        }
+      }
+    },
+    {
+      "id": "PS-MASTER-MALE-STANDARD",
+      "name": "Male Standard",
+      "key": "Male_Standard",
+      "sexClass": "male",
+      "bodyClass": "standard",
+      "status": "production",
+      "outputs": {
+        "TV": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            192
+          ],
+          "base": "assets/bases/Male_Standard.png",
+          "recoveryNote": "v0.18 safety reset: canonical TV artwork requires visual replacement/approval; v0.17 cross-master fallback was rejected."
+        },
+        "FG": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            144
+          ],
+          "base": "masters/Male_Standard/FG_BASE_DRAFT.png"
+        },
+        "TVD": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            192
+          ],
+          "base": "masters/Male_Standard/TVD_BASE_DRAFT.png"
+        },
+        "SV": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            576,
+            384
+          ],
+          "base": "masters/Male_Standard/SV_BASE_DRAFT.png"
+        },
+        "Variation": {
+          "status": "draft",
+          "locked": false,
+          "size": [
+            144,
+            144
+          ],
+          "base": "masters/Male_Standard/VARIATION_BASE_DRAFT.png"
+        }
+      }
+    }
+  ]
+}

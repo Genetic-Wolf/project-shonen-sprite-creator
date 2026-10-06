@@ -1,0 +1,32 @@
+PROJECT SHONEN SPRITE CREATOR v0.7.0
+
+MAJOR MILESTONE — CANONICAL MASTER SYSTEM
+
+Male Standard and Female Standard are no longer just hard-coded dropdown labels. They are registered body masters.
+
+Each body master independently tracks:
+• TV base
+• Face/FG base
+• TVD base
+• SV base
+• Variation/preview base
+• required canvas dimensions
+• draft / review / approved / revision status
+• whether geometry is locked
+
+TV remains APPROVED + LOCKED because it is the current production foundation.
+FG/TVD/SV/Variation are intentionally DRAFT until the artist replaces/reviews the base artwork.
+
+WHY LOCKING MATTERS
+Once components are drawn against a canonical master, changing that master's proportions or anchor geometry can invalidate the whole component library. The manager therefore warns before unlocking an approved master.
+
+The New Character Art Workspace utility can create one organized character folder containing every representation and its current master status.
+
+FUTURE BODY TYPES
+The registry is designed for additional independent masters such as:
+Female Small / Standard / Tall / Athletic / Chubby / Heavy
+Male Small / Standard / Tall / Athletic / Chubby / Heavy
+Youth / Child
+and specialized custom bodies.
+
+Bust compatibility remains a clothing/body-fit dimension for female assets rather than being treated as a species or gameplay identity.

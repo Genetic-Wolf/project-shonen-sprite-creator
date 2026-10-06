@@ -1,0 +1,16 @@
+v0.10.0 MAJOR MILESTONE
+
+• One primary Project Shonen Sprite Creator launcher.
+• Artist-facing workflow remains no-code.
+• Added safe RPG Maker MZ Install Manager.
+• RPG Maker project root validation.
+• Output-specific export staging folders.
+• Existing same-name RPG Maker graphics are automatically backed up before replacement.
+• Timestamped backups.
+• Added visual master thumbnail generation.
+• Clarified final Artist Edition vs maintainer/developer files.
+• New body-master creation remains available from the unified home screen.
+• Clip Studio ORA -> transparent PNG remains the canonical art interchange workflow.
+
+NEXT PRODUCTION PRIORITY
+Bring the remaining child workflow screens into a true single-window/tabbed UI and finish native Windows packaging/testing on Windows. The architecture now avoids requiring the artist to understand any build/development technology.
