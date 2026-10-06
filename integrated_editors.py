@@ -66,10 +66,14 @@ class PieceEditor(ttk.Frame):
  def workspace(self,out):
   a=self.asset()
   if not a:return
-  label,size=OUTS[out];m=self.master(a);d=ROOT/"artist_workspace"/"Pieces"/a["id"]/out;d.mkdir(parents=True,exist_ok=True)
+  label,size=OUTS[out];m=self.master(a)
+  if not m: messagebox.showerror("No body master","This piece is not linked to a valid body master.");return
+  mo=m["outputs"].get(out,{})
+  if mo.get("status")!="approved" or not mo.get("locked"):
+   messagebox.showerror("Master not production-ready",f"{m['name']} {out} is still {mo.get('status','draft')}. Replace, review, approve and lock the body master before creating production reusable artwork.");return
+  d=ROOT/"artist_workspace"/"Pieces"/a["id"]/out;d.mkdir(parents=True,exist_ok=True)
   ref=None
   if m:
-   mo=m["outputs"].get(out,{})
    p=app_paths.resolve(mo.get("base",""))
    if p.exists() and Image.open(p).size==size:ref=Image.open(p).convert("RGBA")
   layers=[("00_GUIDES_DO_NOT_EXPORT",guide(size,out))]
@@ -82,6 +86,9 @@ class PieceEditor(ttk.Frame):
  def importpng(self,out):
   a=self.asset()
   if not a:return
+  m=self.master(a);mo=m.get("outputs",{}).get(out,{}) if m else {}
+  if not m or mo.get("status")!="approved" or not mo.get("locked"):
+   messagebox.showerror("Master not production-ready","Reusable artwork cannot be imported as complete until its body master output is approved and locked.");return
   p=filedialog.askopenfilename(filetypes=[("PNG","*.png")])
   if not p:return
   im=Image.open(p).convert("RGBA");size=OUTS[out][1]
@@ -140,9 +147,11 @@ class MasterEditor(ttk.Frame):
   if not m or not k:return
   o=m["outputs"][k]
   if not messagebox.askyesno("Approve canonical master","Lock this artwork as the canonical geometry for compatible components?"):return
-  o["status"]="approved";o["locked"]=True;save(REG,self.reg);self.select()
+  o["status"]="approved";o["locked"]=True
+  if all(x.get("status")=="approved" and x.get("locked") for x in m["outputs"].values()): m["status"]="production"
+  save(REG,self.reg);self.select()
  def unlock(self):
   m=self.master();k=self.chosen()
   if not m or not k:return
   if not messagebox.askyesno("Unlock master","Changing canonical geometry can misalign existing components. Continue?"):return
-  o=m["outputs"][k];o["locked"]=False;o["status"]="revision";save(REG,self.reg);self.select()
+  o=m["outputs"][k];o["locked"]=False;o["status"]="revision";m["status"]="revision";save(REG,self.reg);self.select()
