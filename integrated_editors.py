@@ -8,7 +8,7 @@ ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
 REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
-OUTS={"TV":("Walking", (144,192)),"FG":("Face",(144,144)),"TVD":("Downed",(144,192)),"SV":("Battle",(576,384)),"Variation":("Preview",(144,144))}
+OUTS={"TV":("Walking",(144,192)),"FG":("Face",(144,144)),"TVD":("Downed",(144,48)),"SV":("Battle",(576,384)),"Variation":("Preview",(64,64))}
 def load(p,d):
  try:return json.load(open(p,encoding="utf-8"))
  except:return d
@@ -69,7 +69,7 @@ class PieceEditor(ttk.Frame):
   label,size=OUTS[out];m=self.master(a)
   if not m: messagebox.showerror("No body master","This piece is not linked to a valid body master.");return
   mo=m["outputs"].get(out,{})
-  if mo.get("status")!="approved" or not mo.get("locked"):
+  if mo.get("status") not in ("approved","reference") or not mo.get("locked"):
    messagebox.showerror("Master not production-ready",f"{m['name']} {out} is still {mo.get('status','draft')}. Replace, review, approve and lock the body master before creating production reusable artwork.");return
   d=ROOT/"artist_workspace"/"Pieces"/a["id"]/out;d.mkdir(parents=True,exist_ok=True)
   ref=None
@@ -87,7 +87,7 @@ class PieceEditor(ttk.Frame):
   a=self.asset()
   if not a:return
   m=self.master(a);mo=m.get("outputs",{}).get(out,{}) if m else {}
-  if not m or mo.get("status")!="approved" or not mo.get("locked"):
+  if not m or mo.get("status") not in ("approved","reference") or not mo.get("locked"):
    messagebox.showerror("Master not production-ready","Reusable artwork cannot be imported as complete until its body master output is approved and locked.");return
   p=filedialog.askopenfilename(filetypes=[("PNG","*.png")])
   if not p:return
