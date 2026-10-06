@@ -20,7 +20,7 @@ class CharacterBuilder(ttk.Frame):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
   masters=[m["name"] for m in self.reg["masters"]];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
-  cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",lambda e:self.refresh())
+  cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",self.on_master_changed)
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+sorted({a.get("category","Other") for a in self.lib["assets"]});cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=10)
@@ -46,6 +46,11 @@ class CharacterBuilder(ttk.Frame):
   ttk.Button(y,text="Open Character Project",command=self.open_project).pack(side="left",padx=5)
   self.refresh()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
+ def on_master_changed(self,event=None):
+  # A body change invalidates layers selected for the previous geometry.
+  self.selected=[]
+  if hasattr(self,"sel"): self.renderstack()
+  if hasattr(self,"tree") and hasattr(self,"search"): self.refresh()
  def compatible(self,a,m):return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
