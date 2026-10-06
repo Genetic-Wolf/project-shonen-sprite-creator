@@ -27,7 +27,7 @@ class CharacterBuilder(ttk.Frame):
   left=ttk.Frame(pan);mid=ttk.Frame(pan);right=ttk.Frame(pan);pan.add(left,weight=3);pan.add(mid,weight=2);pan.add(right,weight=3)
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add)
-  ttk.Label(mid,text="Layer Stack",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
+  ttk.Label(mid,text="Selected Components",font=("TkDefaultFont",11,"bold")).pack(anchor="w")\n  ttk.Label(mid,text="The base body is always present. Hair, face, clothing and other parts start empty.",wraplength=250).pack(anchor="w",pady=(0,5))
   self.sel=tk.Listbox(mid);self.sel.pack(fill="both",expand=True)
   b=ttk.Frame(mid);b.pack(fill="x",pady=5)
   ttk.Button(b,text="↑",width=4,command=lambda:self.move(-1)).pack(side="left");ttk.Button(b,text="↓",width=4,command=lambda:self.move(1)).pack(side="left",padx=3);ttk.Button(b,text="Remove",command=self.remove).pack(side="left")
@@ -36,7 +36,7 @@ class CharacterBuilder(ttk.Frame):
   ttk.Combobox(ph,textvariable=self.preview_out,values=["TV","FG","TVD","SV"],state="readonly",width=10).pack(side="right")
   self.preview_out.trace_add("write",lambda *_:self.preview())
   self.canvas=tk.Canvas(right,width=360,height=420,bg="#30343b",highlightthickness=0);self.canvas.pack(fill="both",expand=True)
-  self.readiness=tk.StringVar();ttk.Label(right,textvariable=self.readiness,wraplength=330).pack(anchor="w",pady=5)
+  self.baseinfo=tk.StringVar(value="Base Body");ttk.Label(right,textvariable=self.baseinfo,font=("TkDefaultFont",10,"bold")).pack(anchor="w",pady=(4,0))\n  self.readiness=tk.StringVar();ttk.Label(right,textvariable=self.readiness,wraplength=330).pack(anchor="w",pady=5)
   x=ttk.Frame(right);x.pack(fill="x")
   ttk.Button(x,text="Export Selected Output",command=self.export).pack(side="left")
   ttk.Button(x,text="Export All Ready Outputs",command=self.export_all).pack(side="left",padx=5)
@@ -50,7 +50,7 @@ class CharacterBuilder(ttk.Frame):
   # A body change invalidates layers selected for the previous geometry.
   self.selected=[]
   if hasattr(self,"sel"): self.renderstack()
-  if hasattr(self,"tree") and hasattr(self,"search"): self.refresh()
+  if hasattr(self,"baseinfo"):\n   m=self.currentmaster();self.baseinfo.set("Base Body: "+(m.get("name","None") if m else "None")+" — no cosmetics selected")\n  if hasattr(self,"tree") and hasattr(self,"search"): self.refresh()
  def compatible(self,a,m):return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
