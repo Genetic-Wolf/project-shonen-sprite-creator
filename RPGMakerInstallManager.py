@@ -2,7 +2,10 @@
 import tkinter as tk,json,shutil,os,time
 from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent
+import app_paths
+ROOT=app_paths.DATA_ROOT
+RESOURCE_ROOT=app_paths.RESOURCE_ROOT
+app_paths.bootstrap()
 SETTINGS=ROOT/"artist_settings.json"
 MAP={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}
 class I(tk.Tk):
