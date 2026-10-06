@@ -1,51 +1,59 @@
 name: Build Windows Artist Edition
-
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
-
 jobs:
-  build-windows:
+  validate-and-build:
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python for build machine
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install build dependencies
-        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller pillow
-      - name: Validate source exists
+      - name: Validate canonical repository
+        run: python verify_repository.py
+      - name: Compile Python source
+        run: python -c "import pathlib,py_compile; [py_compile.compile(str(p),doraise=True) for p in pathlib.Path('.').glob('*.py')]"
+      - name: Validate JSON
+        run: python -c "import pathlib,json; [json.loads(p.read_text(encoding='utf-8')) for p in pathlib.Path('.').glob('*.json')]"
+      - name: Source self-test
+        env:
+          PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenSourceTest
+        run: python ProjectShonenSpriteCreator.py --self-test
+      - name: Build Windows application
         shell: pwsh
         run: |
-          if (!(Test-Path "ProjectShonenSpriteCreator.py")) { throw "ProjectShonenSpriteCreator.py is missing" }
-      - name: Build self-contained Windows application
+          pyinstaller --noconfirm --clean --windowed --name ProjectShonenSpriteCreator --hidden-import PIL._tkinter_finder --add-data "assets;assets" --add-data "masters;masters" --add-data "templates;templates" --add-data "ui_thumbnails;ui_thumbnails" --add-data "library.json;." --add-data "master_registry.json;." --add-data "asset_outputs.json;." ProjectShonenSpriteCreator.py
+      - name: Compiled EXE self-test
         shell: pwsh
+        env:
+          PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenExeTest
         run: |
-          pyinstaller --noconfirm --clean --windowed --name ProjectShonenSpriteCreator --hidden-import PIL._tkinter_finder ProjectShonenSpriteCreator.py
-      - name: Assemble Artist Edition
+          & ".\dist\ProjectShonenSpriteCreator\ProjectShonenSpriteCreator.exe" --self-test
+          if ($LASTEXITCODE -ne 0) { throw "Compiled EXE self-test failed" }
+      - name: Assemble clean Artist Edition
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force "artist-edition" | Out-Null
           Copy-Item "dist\ProjectShonenSpriteCreator\*" "artist-edition" -Recurse
-          if (Test-Path "README.txt") { Copy-Item "README.txt" "artist-edition\README.txt" }
-          @("assets","masters","templates","ui_thumbnails") | ForEach-Object {
-            if (Test-Path $_) { Copy-Item $_ "artist-edition\$_" -Recurse }
-          }
-          @("master_registry.json","library.json","rpgmaker_export_map.json","WINDOWS_DISTRIBUTION_MANIFEST.json") | ForEach-Object {
-            if (Test-Path $_) { Copy-Item $_ "artist-edition\$_" }
-          }
-          @("character_projects","artist_workspace","exports","backups") | ForEach-Object {
-            New-Item -ItemType Directory -Force "artist-edition\$_" | Out-Null
-          }
+          Copy-Item "README.txt" "artist-edition\README.txt"
+      - name: Reject development clutter
+        shell: pwsh
+        run: |
+          $bad = Get-ChildItem "artist-edition" -Recurse -File | Where-Object { $_.Extension -in ".py",".pyc",".spec",".bat" -or $_.Name -match "RELEASE_NOTES|AUDIT_REPORT|BUILD_STATUS" }
+          if ($bad) { $bad | ForEach-Object { Write-Host $_.FullName }; throw "Artist Edition contains development files" }
+          if (!(Test-Path "artist-edition\ProjectShonenSpriteCreator.exe")) { throw "Artist executable missing" }
+      - name: Create single Windows ZIP
+        shell: pwsh
+        run: Compress-Archive -Path "artist-edition\*" -DestinationPath "Project-Shonen-Sprite-Creator-v0.22.0-Windows.zip" -Force
       - name: Upload Windows Artist Edition
         uses: actions/upload-artifact@v4
         with:
-          name: Project-Shonen-Sprite-Creator-Windows
-          path: artist-edition
+          name: Project-Shonen-Sprite-Creator-v0.22.0-Windows
+          path: Project-Shonen-Sprite-Creator-v0.22.0-Windows.zip
           if-no-files-found: error
