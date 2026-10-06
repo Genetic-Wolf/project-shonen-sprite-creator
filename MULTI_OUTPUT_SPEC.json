@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.22.0",
   "outputs": {
     "TV": {
       "purpose": "walking/map sprite",
@@ -37,7 +37,19 @@
     },
     "TVD": {
       "purpose": "downed/damaged generator representation",
-      "note": "Uses its own canonical pose master; do not rotate TV frames."
+      "note": "Native RPG Maker MZ TVD component sheet. Uses its own damaged/downed pose artwork; do not rotate TV frames.",
+      "canvas": [
+        144,
+        48
+      ],
+      "frame": [
+        48,
+        48
+      ],
+      "grid": [
+        3,
+        1
+      ]
     },
     "SV": {
       "purpose": "side-view battle representation",
@@ -57,7 +69,11 @@
     },
     "Variation": {
       "purpose": "generator selection thumbnail",
-      "note": "Preview/icon representation linked to the same logical asset ID."
+      "note": "Native RPG Maker MZ generator selection icon is 64×64 and is linked to the same logical asset ID.",
+      "canvas": [
+        64,
+        64
+      ]
     }
   },
   "logicalAssetRule": "One logical Project Shonen asset ID owns all output representations.",
