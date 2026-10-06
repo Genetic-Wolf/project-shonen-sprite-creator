@@ -8,7 +8,8 @@ ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
 LIB=ROOT/"library.json";REG=ROOT/"master_registry.json";SET=ROOT/"artist_settings.json"
-DEST={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}\nCUSTOMIZATION_FIELDS=[
+DEST={"TV":"img/characters","FG":"img/faces","TVD":"img/characters","SV":"img/sv_actors","Variation":"generator/Variation"}
+CUSTOMIZATION_FIELDS=[
  ("Face",["Face / Shape","Face / Eyes","Face / Eyebrows","Face / Nose","Face / Mouth","Face / Ears","Face / Facial Hair","Face / Markings","Face / Dōjutsu","Face / Scars","Face / Tattoos","Face / Clan Markings"]),
  ("Hair",["Hair / Rear","Hair / Main","Hair / Front","Hair / Ponytail","Hair / Accessories"]),
  ("Clothing",["Clothing / Undershirt","Clothing / Shirt","Clothing / Pants","Clothing / Skirt","Clothing / Belt","Clothing / Gloves","Clothing / Shoes","Clothing"]),
