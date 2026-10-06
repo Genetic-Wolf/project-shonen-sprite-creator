@@ -64,5 +64,8 @@ class App(tk.Tk):
   if p:v.set(p)
 if __name__ == "__main__":
  if "--self-test" in sys.argv:
-  print(json.dumps(app_paths.self_test(), indent=2)); sys.exit(0 if app_paths.self_test()["ok"] else 1)
+  result=app_paths.self_test(); print(json.dumps(result, indent=2))
+  try: (app_paths.DATA_ROOT/"self_test_result.json").write_text(json.dumps(result, indent=2),encoding="utf-8")
+  except Exception as e: print("Could not write self-test result:",e)
+  sys.exit(0 if result["ok"] else 1)
  App().mainloop()
