@@ -34,8 +34,13 @@ jobs:
         env:
           PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenExeTest
         run: |
-          & ".\dist\ProjectShonenSpriteCreator\ProjectShonenSpriteCreator.exe" --self-test
-          if ($LASTEXITCODE -ne 0) { throw "Compiled EXE self-test failed" }
+          Remove-Item "$env:PROJECT_SHONEN_DATA\self_test_result.json" -ErrorAction SilentlyContinue
+          Start-Process -FilePath ".\dist\ProjectShonenSpriteCreator\ProjectShonenSpriteCreator.exe" -ArgumentList "--self-test" -Wait
+          $resultPath = "$env:PROJECT_SHONEN_DATA\self_test_result.json"
+          if (!(Test-Path $resultPath)) { throw "Compiled EXE did not produce self-test result" }
+          $result = Get-Content $resultPath -Raw | ConvertFrom-Json
+          if ($result.ok -ne $true) { throw "Compiled EXE self-test reported failure" }
+
       - name: Assemble clean Artist Edition
         shell: pwsh
         run: |
