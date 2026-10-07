@@ -26,14 +26,18 @@ class App(tk.Tk):
   ttk.Label(self.content,text=a,font=("TkDefaultFont",16,"bold")).pack(anchor="w");ttk.Label(self.content,text=b,wraplength=900).pack(anchor="w",pady=(2,10))
  def page(self,k):
   self.clear()
-  if k=="gallery":\n   self.heading("Art Library","Your working visual library. Imported RPG Maker references and Project Shonen artwork appear here together for browsing.")\n   integrated_editors.LibraryGallery(self.content,"pieces").pack(fill="both",expand=True)\n  elif k=="pieces":
+  if k=="gallery":
+   self.heading("Art Library","Your working visual library. Imported RPG Maker references and Project Shonen artwork appear here together for browsing.")
+   integrated_editors.LibraryGallery(self.content,"pieces").pack(fill="both",expand=True)
+  elif k=="pieces":
    self.heading("Create Piece","Draw a new hairstyle, face feature, outfit, armor piece, weapon or accessory against the selected body.")
    ttk.Button(self.content,text="+ New Reusable Piece",command=lambda:embedded_workflows.new_piece_dialog(self,lambda:self.page("pieces"))).pack(anchor="w",pady=(0,6))
    integrated_editors.PieceEditor(self.content).pack(fill="both",expand=True)
   elif k=="masters":
    self.heading("Body","Choose and maintain the body bases that all character artwork is aligned to. Imported RPG Maker bodies appear here automatically.")
    ttk.Button(self.content,text="+ New Body Master",command=lambda:embedded_workflows.new_master_dialog(self,lambda:self.page("masters"))).pack(anchor="w",pady=(0,6))
-   integrated_editors.LibraryGallery(self.content,"masters").pack(fill="x",expand=False,pady=(0,8))\n   integrated_editors.MasterEditor(self.content).pack(fill="both",expand=True)
+   integrated_editors.LibraryGallery(self.content,"masters").pack(fill="x",expand=False,pady=(0,8))
+   integrated_editors.MasterEditor(self.content).pack(fill="both",expand=True)
   elif k=="characters":
    self.heading("Create Character","Build visually from a body, hair, face, clothing, armor, shinobi gear, accessories and special features.")
    integrated_character_rpg.CharacterBuilder(self.content).pack(fill="both",expand=True)
@@ -65,7 +69,11 @@ class App(tk.Tk):
   if not p:return
   try:
    r=mz_generator_importer.import_generator_zip(p)
-   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.\\nRegistered {r['componentsAdded']} reusable components.\\nSkipped {r['invalidPngsSkipped']} invalid PNG entries.\\n\\nThe stock artwork remains in your private local Sprite Creator data.")
+   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.\
+Registered {r['componentsAdded']} reusable components.\
+Skipped {r['invalidPngsSkipped']} invalid PNG entries.\
+\
+The stock artwork remains in your private local Sprite Creator data.")
    self.page("characters")
   except Exception as e:messagebox.showerror("Import failed",str(e))
 
