@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import app_paths
-import json,re,subprocess,sys
+import json,re
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -18,17 +18,17 @@ def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 
 def new_piece_dialog(parent,on_done=None):
  data=load(REG,{"masters":[]});lib=load(LIB,{"assets":[]})
- w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("570x430");w.transient(parent);w.grab_set()
+ w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("760x620");w.transient(parent);w.grab_set()
  name=tk.StringVar();cat=tk.StringVar(value="Hair / Front")
  masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=masters[0] if masters else "")
- ttk.Label(w,text="Create Reusable Piece",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
- ttk.Label(w,text="Use normal names. The program assigns the internal ID and file locations.",wraplength=520).pack(anchor="w",padx=18,pady=(0,12))
+ ttk.Label(w,text="Create Artwork",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
+ ttk.Label(w,text="1. Choose the body this artwork fits.  2. Choose what you are drawing.  3. Give it a normal name. The program handles IDs and files.",wraplength=700).pack(anchor="w",padx=18,pady=(0,12))
  f=ttk.Frame(w);f.pack(fill="x",padx=18)
- for r,(lab,var,vals) in enumerate([("Piece name",name,None),("Category",cat,CATEGORIES),("Body master",body,masters)]):
+ for r,(lab,var,vals) in enumerate([("Body",body,masters),("What are you drawing?",cat,CATEGORIES),("Artwork name",name,None)]):
   ttk.Label(f,text=lab).grid(row=r,column=0,sticky="e",padx=6,pady=8)
   if vals is None:ttk.Entry(f,textvariable=var,width=38).grid(row=r,column=1,sticky="w")
   else:ttk.Combobox(f,textvariable=var,values=vals,state="readonly",width=35).grid(row=r,column=1,sticky="w")
- ttk.Label(w,text="After creation, use the piece workspace to add Walking, Face, Downed, Battle and Preview artwork in Clip Studio Paint.",wraplength=510).pack(anchor="w",padx=18,pady=16)
+ ttk.Label(w,text="After creation this artwork appears immediately in Create Piece. Select it there to create the Clip Studio workspace for Walking, Face, Downed, Battle or Preview art.",wraplength=700).pack(anchor="w",padx=18,pady=16)
  def create():
   n=name.get().strip()
   if not n or not body.get():messagebox.showerror("Missing information","Enter a piece name and choose a body master.");return
@@ -44,7 +44,7 @@ def new_piece_dialog(parent,on_done=None):
   # Existing Asset Studio owns the proven multi-output ORA workflow.
   subprocess.Popen([sys.executable,str(ROOT/"ProjectShonenAssetStudio.py")])
   if on_done:on_done()
- ttk.Button(w,text="Create Piece",command=create).pack(pady=18)
+ ttk.Button(w,text="Create Artwork",command=create).pack(pady=18)
 
 def new_master_dialog(parent,on_done=None):
  w=tk.Toplevel(parent);w.title("Create New Body Master");w.geometry("590x470");w.transient(parent);w.grab_set()
