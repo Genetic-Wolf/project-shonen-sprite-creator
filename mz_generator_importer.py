@@ -114,3 +114,52 @@ def import_generator_zip(zip_path):
   });known.add(aid);added+=1
  _save(libp,lib)
  return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentGroupsFound":len(groups),"destination":str(dest)}
+
+
+def import_generator_folder(folder_path):
+ app_paths.bootstrap()
+ src=Path(folder_path)
+ if src.name.lower()!="generator" and (src/"generator").is_dir():src=src/"generator"
+ if not (src/"TV").is_dir():raise ValueError("Choose the RPG Maker MZ generator folder containing TV, Face, TVD, SV and Variation.")
+ dest=app_paths.DATA_ROOT/"mz_generator";valid=invalid=0
+ for p in src.rglob("*"):
+  if not p.is_file():continue
+  rel=p.relative_to(src)
+  if rel.parts[0] not in {"Face","TV","TVD","SV","Variation"} and not p.name.lower().startswith("grad_"):continue
+  data=p.read_bytes()
+  if p.suffix.lower()==".png" and not _png_ok(data):invalid+=1;continue
+  target=dest/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data);valid+=1
+ # Reuse registry builder by packaging only the local copy temporarily is unnecessary; register in-place.
+ return _register_existing(dest,valid,invalid)
+
+def _register_existing(dest,valid=0,invalid=0):
+ regp=app_paths.DATA_ROOT/"master_registry.json";reg=_load(regp,{"schemaVersion":2,"masters":[]});existing={m.get("key") for m in reg.get("masters",[])}
+ for sex in SEXES:
+  key=f"MZ_{sex}_Standard"
+  if key in existing:continue
+  candidates={"TV":dest/"TV"/sex/"TV_Body_p01.png","FG":dest/"Face"/sex/"FG_Body_p01_c1_m001.png","TVD":dest/"TVD"/sex/"TVD_Body_p01.png","SV":dest/"SV"/sex/"SV_body_p01.png"}
+  outputs={rep:{"status":"reference" if p.exists() else "missing","locked":True,"size":list(EXPECTED.get(rep,(144,144))),"base":_rel(p) if p.exists() else ""} for rep,p in candidates.items()}
+  outputs["Variation"]={"status":"reference","locked":True,"size":[64,64],"base":""}
+  reg["masters"].append({"id":f"PS-MZ-{sex.upper()}-STANDARD","name":f"RPG Maker MZ {sex}","key":key,"sexClass":sex.lower(),"bodyClass":"kid" if sex=="Kid" else "standard","status":"reference","source":"RPG Maker MZ (user-owned local import)","outputs":outputs})
+ _save(regp,reg)
+ groups={}
+ for sex in SEXES:
+  for rep,folder in REP_DIR.items():
+   d=dest/folder/sex
+   if not d.exists():continue
+   for f in d.glob("*.png"):
+    m=RX.match(f.name)
+    if not m:continue
+    _,cat,layer,pid=m.groups()
+    if cat.lower()=="body":continue
+    groups.setdefault((sex,cat,int(pid)),{}).setdefault(rep,[]).append((_rel(f),int(layer or 0),f.name))
+ libp=app_paths.DATA_ROOT/"library.json";lib=_load(libp,{"version":"0.22.0","assets":[]});assets=lib.setdefault("assets",[]);known={a.get("id") for a in assets};added=0
+ for (sex,cat,pid),reps in sorted(groups.items(),key=lambda x:(x[0][0],x[0][1],x[0][2])):
+  aid=f"MZ-{sex.upper()}-{cat.upper()}-{pid:03d}"
+  if aid in known:continue
+  outputs={}
+  for rep,entries in reps.items():
+   paths=[x[0] for x in sorted(entries,key=lambda x:(x[1],x[2]))];outputs[rep]={"status":"complete","paths":paths,"path":paths[0]}
+  assets.append({"id":aid,"name":f"MZ {cat} {pid:02d}","category":CATEGORY_MAP.get(cat,cat),"body":f"MZ_{sex}_Standard","masterId":f"PS-MZ-{sex.upper()}-STANDARD","source":"RPG Maker MZ (user-owned local import)","nativeCategory":cat,"nativePartId":pid,"outputs":outputs});known.add(aid);added+=1
+ _save(libp,lib)
+ return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentGroupsFound":len(groups),"destination":str(dest)}
