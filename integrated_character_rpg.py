@@ -45,7 +45,9 @@ class CharacterBuilder(ttk.Frame):
   self.field_hint=tk.StringVar(value="All customization fields are available. Choose a group above or use Category.")
   ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,5))
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
-  self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add)
+  self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
+  self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
+  self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(left,textvariable=self.pieceinfo,wraplength=430).pack(anchor="w",pady=4)
   ttk.Label(mid,text="Selected Components",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   ttk.Label(mid,text="The base body is always present. Hair, face, clothing and other parts start empty.",wraplength=250).pack(anchor="w",pady=(0,5))
   self.sel=tk.Listbox(mid);self.sel.pack(fill="both",expand=True)
@@ -90,10 +92,16 @@ class CharacterBuilder(ttk.Frame):
   m=self.currentmaster()
   if not m:return
   q=self.search.get().lower().strip()
+  shown=0
   for i,a in enumerate(self.lib["assets"]):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
-    o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"))
-  self.preview()
+    o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"));shown+=1
+  self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")\n  self.preview()
+ def piece_preview(self,event=None):
+  sel=self.tree.selection()
+  if not sel:return
+  a=self.lib["assets"][int(sel[0])];outs=[k for k,v in a.get("outputs",{}).items() if v.get("status")=="complete"]
+  self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+" • outputs: "+(", ".join(outs) if outs else "none"))
  def add(self,e=None):
   s=self.tree.selection()
   if not s:return
