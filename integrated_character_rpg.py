@@ -35,7 +35,7 @@ class CharacterBuilder(ttk.Frame):
   masters=[m["name"] for m in self.reg["masters"]];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
   cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",self.on_master_changed)
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
-  ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+sorted({a.get("category","Other") for a in self.lib["assets"]});cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
+  ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+list(dict.fromkeys([x for _,fs in CUSTOMIZATION_FIELDS for x in fs]+[a.get("category","Other") for a in self.lib["assets"]]));cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=10)
   left=ttk.Frame(pan);mid=ttk.Frame(pan);right=ttk.Frame(pan);pan.add(left,weight=3);pan.add(mid,weight=2);pan.add(right,weight=3)
   ttk.Label(left,text="Customization",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
