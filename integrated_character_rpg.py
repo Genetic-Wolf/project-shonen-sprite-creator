@@ -3,7 +3,8 @@ from tkinter import ttk,messagebox,filedialog
 from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk
-import json,shutil,time,re\nimport asset_package
+import json,shutil,time,re
+import asset_package
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
