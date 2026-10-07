@@ -173,11 +173,16 @@ class CharacterBuilder(ttk.Frame):
  def export_one(self,out,quiet=False):
   ok,why=self.master_ready(out)
   if not ok:
-   if not quiet:messagebox.showerror("Master not production-ready",why+"\\n\\nApprove and lock this master output on the Body Masters page first.")
+   if not quiet:messagebox.showerror("Master not production-ready",why+"\
+\
+Approve and lock this master output on the Body Masters page first.")
    return False
   canvas,missing=self.composite(out)
   if canvas is None or missing:
-   if not quiet:messagebox.showerror("Character output incomplete","Complete these assets first:\\n\\n"+"\\n".join(missing))
+   if not quiet:messagebox.showerror("Character output incomplete","Complete these assets first:\
+\
+"+"\
+".join(missing))
    return False
   safe=re.sub(r'[^A-Za-z0-9_-]+','_',self.name.get().strip()) or "Character";d=ROOT/"exports"/out;d.mkdir(parents=True,exist_ok=True)
   if out=="TV":fn=f"${safe}.png"
@@ -187,13 +192,16 @@ class CharacterBuilder(ttk.Frame):
   canvas.save(d/fn);return True
  def export(self):
   out=self.preview_out.get()
-  if self.export_one(out):messagebox.showinfo("Output ready",f"{out} artwork was exported successfully.\\n\\nUse the RPG Maker MZ page to install it safely.")
+  if self.export_one(out):messagebox.showinfo("Output ready",f"{out} artwork was exported successfully.\
+\
+Use the RPG Maker MZ page to install it safely.")
  def export_all(self):
   ready=[];blocked=[]
   for out in ("TV","FG","TVD","SV"):
    if self.export_one(out,quiet=True):ready.append(out)
    else:blocked.append(out)
-  messagebox.showinfo("Character export summary","Exported: "+(", ".join(ready) if ready else "none")+"\\nBlocked/incomplete: "+(", ".join(blocked) if blocked else "none"))
+  messagebox.showinfo("Character export summary","Exported: "+(", ".join(ready) if ready else "none")+"\
+Blocked/incomplete: "+(", ".join(blocked) if blocked else "none"))
 
 class TransferCenter(ttk.Frame):
  def __init__(self,parent,app=None):
@@ -206,7 +214,8 @@ class TransferCenter(ttk.Frame):
   paths.columnconfigure(1,weight=1)
   box=ttk.Frame(self);box.pack(fill="both",expand=True)
   a=ttk.LabelFrame(box,text="RPG Maker MZ",padding=12);a.pack(fill="x",pady=5)
-  ttk.Button(a,text="Import Generator ZIP",command=self.import_generator).pack(side="left",padx=4)\n  ttk.Button(a,text="Import Generator Folder",command=self.import_generator_folder).pack(side="left",padx=4)
+  ttk.Button(a,text="Import Generator ZIP",command=self.import_generator).pack(side="left",padx=4)
+  ttk.Button(a,text="Import Generator Folder",command=self.import_generator_folder).pack(side="left",padx=4)
   ttk.Button(a,text="Export / Install Ready Content",command=self.install_ready).pack(side="left",padx=4)
   ttk.Button(a,text="Open RPG Maker Project Folder",command=self.open_project).pack(side="left",padx=4)
   b=ttk.LabelFrame(box,text="Clip Studio Paint",padding=12);b.pack(fill="x",pady=5)
@@ -305,7 +314,8 @@ class RPGInstaller(ttk.Frame):
     if target.exists():
      bd=bak/dest;bd.mkdir(parents=True,exist_ok=True);shutil.copy2(target,bd/p.name);backed+=1
     shutil.copy2(p,target);installed+=1
-  messagebox.showinfo("Installation complete",f"Installed {installed} graphics.\\nBacked up {backed} replaced graphics.");self.refresh()
+  messagebox.showinfo("Installation complete",f"Installed {installed} graphics.\
+Backed up {backed} replaced graphics.");self.refresh()
 
 class Health(ttk.Frame):
  def __init__(self,parent):
