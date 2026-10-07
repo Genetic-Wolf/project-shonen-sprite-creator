@@ -35,7 +35,31 @@ def guide(size,out):
  else:d.line((size[0]//2,0,size[0]//2,size[1]-1),fill=(255,0,255,100))
  return im
 
-class LibraryGallery(ttk.Frame):\n def __init__(self,parent,kind="pieces"):\n  super().__init__(parent);self.kind=kind;self.photos=[];self.build()\n def build(self):\n  data=load(LIB,{"assets":[]}).get("assets",[]) if self.kind=="pieces" else load(REG,{"masters":[]}).get("masters",[])\n  if not data:\n   ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return\n  cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")\n  for n,item in enumerate(data):\n   card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew")\n   p=None\n   if self.kind=="pieces":\n    o=item.get("outputs",{}).get("Variation") or item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("path","")) if o.get("path") else None\n   else:\n    o=item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("base","")) if o.get("base") else None\n   if p and p.exists():\n    try:\n     im=Image.open(p).convert("RGBA");\n     if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))\n     im.thumbnail((96,96),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.photos.append(ph);ttk.Label(card,image=ph).pack()\n    except Exception:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)\n   else:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)\n   ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=150).pack()\n\nclass PieceEditor(ttk.Frame):
+class LibraryGallery(ttk.Frame):
+ def __init__(self,parent,kind="pieces"):
+  super().__init__(parent);self.kind=kind;self.photos=[];self.build()
+ def build(self):
+  data=load(LIB,{"assets":[]}).get("assets",[]) if self.kind=="pieces" else load(REG,{"masters":[]}).get("masters",[])
+  if not data:
+   ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return
+  cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
+  for n,item in enumerate(data):
+   card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew")
+   p=None
+   if self.kind=="pieces":
+    o=item.get("outputs",{}).get("Variation") or item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("path","")) if o.get("path") else None
+   else:
+    o=item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("base","")) if o.get("base") else None
+   if p and p.exists():
+    try:
+     im=Image.open(p).convert("RGBA");
+     if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
+     im.thumbnail((96,96),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.photos.append(ph);ttk.Label(card,image=ph).pack()
+    except Exception:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
+   else:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
+   ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=150).pack()
+
+class PieceEditor(ttk.Frame):
  def __init__(self,parent):
   super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.current=None;self.pic=None;self.build()
  def build(self):
@@ -80,7 +104,8 @@ class LibraryGallery(ttk.Frame):\n def __init__(self,parent,kind="pieces"):\n  s
   if ref is not None:layers.append(("01_BODY_MASTER_REFERENCE_DO_NOT_EXPORT",ref))
   blank=Image.new("RGBA",size,(0,0,0,0));layers.append((f"02_DRAW_{out}_HERE",blank))
   path=d/f'EDIT_{a["name"].replace(" ","_")}_{out}.ora';ora(path,layers,size)
-  (d/"READ_ME_FIRST.txt").write_text(f"Draw {a['name']} on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at {size[0]}x{size[1]}, then return to the creator and click Import PNG.\n",encoding="utf-8")
+  (d/"READ_ME_FIRST.txt").write_text(f"Draw {a['name']} on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at {size[0]}x{size[1]}, then return to the creator and click Import PNG.
+",encoding="utf-8")
   try:os.startfile(path)
   except:pass
  def importpng(self,out):
