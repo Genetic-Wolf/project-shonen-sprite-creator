@@ -96,7 +96,8 @@ class CharacterBuilder(ttk.Frame):
   for i,a in enumerate(self.lib["assets"]):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
     o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"));shown+=1
-  self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")\n  self.preview()
+  self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")
+  self.preview()
  def piece_preview(self,event=None):
   sel=self.tree.selection()
   if not sel:return
