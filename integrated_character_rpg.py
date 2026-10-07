@@ -32,7 +32,7 @@ class CharacterBuilder(ttk.Frame):
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
-  masters=[m["name"] for m in self.reg["masters"]];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
+  ordered=sorted(self.reg["masters"],key=lambda m:(0 if m.get("status")=="reference" else 1,m.get("name","")));masters=[m["name"] for m in ordered];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
   cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",self.on_master_changed)
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+list(dict.fromkeys([x for _,fs in CUSTOMIZATION_FIELDS for x in fs]+[a.get("category","Other") for a in self.lib["assets"]]));cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
@@ -212,7 +212,7 @@ class CharacterBuilder(ttk.Frame):
   if not ok:
    if not quiet:messagebox.showerror("Master not production-ready",why+"\
 \
-Approve and lock this master output on the Body Masters page first.")
+Choose a body with the required artwork, or add that body artwork on the Body page.")
    return False
   canvas,missing=self.composite(out)
   if canvas is None or missing:
