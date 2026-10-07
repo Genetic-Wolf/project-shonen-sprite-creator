@@ -104,9 +104,7 @@ class PieceEditor(ttk.Frame):
   if ref is not None:layers.append(("01_BODY_MASTER_REFERENCE_DO_NOT_EXPORT",ref))
   blank=Image.new("RGBA",size,(0,0,0,0));layers.append((f"02_DRAW_{out}_HERE",blank))
   path=d/f'EDIT_{a["name"].replace(" ","_")}_{out}.ora';ora(path,layers,size)
-  (d/"READ_ME_FIRST.txt").write_text(f"Draw {a['name']} on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at {size[0]}x{size[1]}, then return to the creator and click Import PNG.
-",encoding="utf-8")
-  try:os.startfile(path)
+  (d/"READ_ME_FIRST.txt").write_text("Draw "+a["name"]+" on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at "+str(size[0])+"x"+str(size[1])+", then return to the creator and click Import PNG.",encoding="utf-8")\n  try:os.startfile(path)
   except:pass
  def importpng(self,out):
   a=self.asset()
