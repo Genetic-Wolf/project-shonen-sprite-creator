@@ -18,7 +18,7 @@ class App(tk.Tk):
   ttk.Label(h,text="Artist Production Workspace").pack(side="left",padx=12)
   body=ttk.Frame(self);body.pack(fill="both",expand=True)
   n=ttk.Frame(body,padding=10);n.pack(side="left",fill="y");self.content=ttk.Frame(body,padding=12);self.content.pack(side="left",fill="both",expand=True)
-  for label,key in [("Characters","characters"),("Transfer","transfer"),("Reusable Pieces","pieces"),("Body Masters","masters"),("RPG Maker MZ","rpg"),("Library Health","health"),("Settings","settings")]:
+  for label,key in [("Create Character","characters"),("Art Library","gallery"),("Create Piece","pieces"),("Body","masters"),("Import / Export","transfer"),("RPG Maker MZ","rpg"),("Library Health","health"),("Settings","settings")]:
    ttk.Button(n,text=label,width=20,command=lambda k=key:self.page(k)).pack(fill="x",pady=3)
  def clear(self):
   for w in self.content.winfo_children():w.destroy()
@@ -26,16 +26,16 @@ class App(tk.Tk):
   ttk.Label(self.content,text=a,font=("TkDefaultFont",16,"bold")).pack(anchor="w");ttk.Label(self.content,text=b,wraplength=900).pack(anchor="w",pady=(2,10))
  def page(self,k):
   self.clear()
-  if k=="pieces":
-   self.heading("Reusable Pieces","Create and complete all visual representations without leaving the main application.")
+  if k=="gallery":\n   self.heading("Art Library","Your working visual library. Imported RPG Maker references and Project Shonen artwork appear here together for browsing.")\n   integrated_editors.LibraryGallery(self.content,"pieces").pack(fill="both",expand=True)\n  elif k=="pieces":
+   self.heading("Create Piece","Draw a new hairstyle, face feature, outfit, armor piece, weapon or accessory against the selected body.")
    ttk.Button(self.content,text="+ New Reusable Piece",command=lambda:embedded_workflows.new_piece_dialog(self,lambda:self.page("pieces"))).pack(anchor="w",pady=(0,6))
    integrated_editors.PieceEditor(self.content).pack(fill="both",expand=True)
   elif k=="masters":
-   self.heading("Body Masters","Create new master body sprites, replace canonical artwork, approve it and lock production geometry.")
+   self.heading("Body","Choose and maintain the body bases that all character artwork is aligned to. Imported RPG Maker bodies appear here automatically.")
    ttk.Button(self.content,text="+ New Body Master",command=lambda:embedded_workflows.new_master_dialog(self,lambda:self.page("masters"))).pack(anchor="w",pady=(0,6))
-   integrated_editors.MasterEditor(self.content).pack(fill="both",expand=True)
+   integrated_editors.LibraryGallery(self.content,"masters").pack(fill="x",expand=False,pady=(0,8))\n   integrated_editors.MasterEditor(self.content).pack(fill="both",expand=True)
   elif k=="characters":
-   self.heading("Characters","Assemble a character from body-compatible reusable pieces and export an RPG Maker walking sprite.")
+   self.heading("Create Character","Build visually from a body, hair, face, clothing, armor, shinobi gear, accessories and special features.")
    integrated_character_rpg.CharacterBuilder(self.content).pack(fill="both",expand=True)
   elif k=="transfer":
    self.heading("Import / Export","Move artwork between RPG Maker MZ, Clip Studio Paint and Project Shonen without managing folders manually.")
