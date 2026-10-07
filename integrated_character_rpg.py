@@ -47,7 +47,10 @@ class CharacterBuilder(ttk.Frame):
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
-  pv=ttk.Frame(left);pv.pack(fill="x",pady=4)\n  self.thumb=tk.Label(pv,text="No preview",width=14,height=6,relief="groove");self.thumb.pack(side="left",padx=(0,6))\n  self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(pv,textvariable=self.pieceinfo,wraplength=300).pack(side="left",anchor="nw")\n  ttk.Button(left,text="None for Current Category",command=self.none_current).pack(anchor="w",pady=(0,4))
+  pv=ttk.Frame(left);pv.pack(fill="x",pady=4)
+  self.thumb=tk.Label(pv,text="No preview",width=14,height=6,relief="groove");self.thumb.pack(side="left",padx=(0,6))
+  self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(pv,textvariable=self.pieceinfo,wraplength=300).pack(side="left",anchor="nw")
+  ttk.Button(left,text="None for Current Category",command=self.none_current).pack(anchor="w",pady=(0,4))
   ttk.Label(mid,text="Selected Components",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   ttk.Label(mid,text="The base body is always present. Hair, face, clothing and other parts start empty.",wraplength=250).pack(anchor="w",pady=(0,5))
   self.sel=tk.Listbox(mid);self.sel.pack(fill="both",expand=True)
@@ -76,7 +79,11 @@ class CharacterBuilder(ttk.Frame):
   else:
    self.category.set("All");self.field_hint.set("These fields are accessible but no compatible artwork has been imported/created for them yet: "+", ".join(fields))
   self.refresh()
- def none_current(self):\n  cat=self.category.get()\n  if cat=="All":return\n  self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.preview()\n def clear_components(self):
+ def none_current(self):
+  cat=self.category.get()
+  if cat=="All":return
+  self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.preview()
+ def clear_components(self):
   self.selected=[];self.renderstack();self.preview()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
  def on_master_changed(self,event=None):
