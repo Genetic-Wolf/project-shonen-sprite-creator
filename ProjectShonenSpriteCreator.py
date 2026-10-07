@@ -40,6 +40,8 @@ class App(tk.Tk):
    integrated_editors.MasterEditor(self.content).pack(fill="both",expand=True)
   elif k=="characters":
    self.heading("Create Character","Build visually from a body, hair, face, clothing, armor, shinobi gear, accessories and special features.")
+   tools=ttk.Frame(self.content);tools.pack(fill="x",pady=(0,6))
+   ttk.Button(tools,text="Refresh Imported RPG Maker Art",command=self.refresh_mz_library).pack(side="left")
    integrated_character_rpg.CharacterBuilder(self.content).pack(fill="both",expand=True)
   elif k=="transfer":
    self.heading("Import / Export","Move artwork between RPG Maker MZ, Clip Studio Paint and Project Shonen without managing folders manually.")
@@ -64,6 +66,12 @@ class App(tk.Tk):
    def save():
     self.cfg["rpgMakerProject"]=mz.get();self.cfg["clipStudio"]=csp.get();json.dump(self.cfg,open(SETTINGS,"w",encoding="utf-8"),indent=2);messagebox.showinfo("Saved","Settings saved.")
    ttk.Button(self.content,text="Save Settings",command=save).pack(anchor="w",pady=18)
+ def refresh_mz_library(self):
+  try:
+   r=mz_generator_importer.refresh_local_import()
+   messagebox.showinfo("Imported art refreshed","Found "+str(r["componentGroupsFound"])+" RPG Maker component groups. Updated "+str(r["componentsUpdated"])+" existing pieces and added "+str(r["componentsAdded"])+" missing pieces.")
+   self.page("characters")
+  except Exception as e:messagebox.showerror("Refresh failed",str(e))
  def import_mz_generator(self):
   p=filedialog.askopenfilename(title="Select RPG Maker MZ generator ZIP",filetypes=[("ZIP archive","*.zip")])
   if not p:return
