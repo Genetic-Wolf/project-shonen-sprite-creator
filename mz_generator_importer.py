@@ -15,7 +15,16 @@ CATEGORY_MAP={
  "Tail":"Special / Tail","Wing":"Special / Wings","Clothing1":"Clothing","Clothing2":"Clothing","Cloak1":"Outerwear / Cloak","Cloak2":"Outerwear / Cloak"
 }
 SEXES=("Female","Male","Kid")
-RX=re.compile(r"^(FG|TV|TVD|SV|icon)_([^_]+?)([12])?_p(\d+)",re.I)
+RX=re.compile(r"^(FG|TV|TVD|SV|icon)_([^_]+?)([12])?_p(\\d+)",re.I)
+def _find_body(dest,rep,sex):
+ d=dest/REP_DIR.get(rep,rep)/sex
+ if not d.exists():return None
+ names={"TV":["TV_Body_p01.png"],"TVD":["TVD_Body_p01.png"],"SV":["SV_body_p01.png","SV_Body_p01.png"],"FG":["FG_Body_p01_c1_m001.png","FG_Body_p01_c1.png","FG_Body_p01.png"]}
+ for n in names.get(rep,[]):
+  p=d/n
+  if p.exists():return p
+ cand=sorted([p for p in d.glob("*.png") if "body" in p.name.lower() and "_p01" in p.name.lower()])
+ return cand[0] if cand else None
 
 def _load(path,default):
  try:return json.loads(path.read_text(encoding="utf-8"))
@@ -64,12 +73,7 @@ def import_generator_zip(zip_path):
   if key in existing:continue
   bodyclass="kid" if sex=="Kid" else "standard"
   outputs={}
-  candidates={
-   "TV":dest/"TV"/sex/"TV_Body_p01.png",
-   "FG":dest/"Face"/sex/"FG_Body_p01_c1_m001.png",
-   "TVD":dest/"TVD"/sex/"TVD_Body_p01.png",
-   "SV":dest/"SV"/sex/"SV_body_p01.png"
-  }
+  candidates={rep:_find_body(dest,rep,sex) for rep in ("TV","FG","TVD","SV")}
   for rep,p in candidates.items():
    size=EXPECTED.get(rep,(144,144))
    outputs[rep]={"status":"reference" if p.exists() else "missing","locked":True,"size":list(size),"base":_rel(p) if p.exists() else ""}
@@ -137,8 +141,8 @@ def _register_existing(dest,valid=0,invalid=0):
  for sex in SEXES:
   key=f"MZ_{sex}_Standard"
   if key in existing:continue
-  candidates={"TV":dest/"TV"/sex/"TV_Body_p01.png","FG":dest/"Face"/sex/"FG_Body_p01_c1_m001.png","TVD":dest/"TVD"/sex/"TVD_Body_p01.png","SV":dest/"SV"/sex/"SV_body_p01.png"}
-  outputs={rep:{"status":"reference" if p.exists() else "missing","locked":True,"size":list(EXPECTED.get(rep,(144,144))),"base":_rel(p) if p.exists() else ""} for rep,p in candidates.items()}
+  candidates={rep:_find_body(dest,rep,sex) for rep in ("TV","FG","TVD","SV")}
+  outputs={rep:{"status":"reference" if p and p.exists() else "missing","locked":True,"size":list(EXPECTED.get(rep,(144,144))),"base":_rel(p) if p and p.exists() else ""} for rep,p in candidates.items()}
   outputs["Variation"]={"status":"reference","locked":True,"size":[64,64],"base":""}
   reg["masters"].append({"id":f"PS-MZ-{sex.upper()}-STANDARD","name":f"RPG Maker MZ {sex}","key":key,"sexClass":sex.lower(),"bodyClass":"kid" if sex=="Kid" else "standard","status":"reference","source":"RPG Maker MZ (user-owned local import)","outputs":outputs})
  _save(regp,reg)
