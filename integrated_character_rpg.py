@@ -206,7 +206,7 @@ class TransferCenter(ttk.Frame):
   paths.columnconfigure(1,weight=1)
   box=ttk.Frame(self);box.pack(fill="both",expand=True)
   a=ttk.LabelFrame(box,text="RPG Maker MZ",padding=12);a.pack(fill="x",pady=5)
-  ttk.Button(a,text="Import Generator Assets",command=self.import_generator).pack(side="left",padx=4)
+  ttk.Button(a,text="Import Generator ZIP",command=self.import_generator).pack(side="left",padx=4)\n  ttk.Button(a,text="Import Generator Folder",command=self.import_generator_folder).pack(side="left",padx=4)
   ttk.Button(a,text="Export / Install Ready Content",command=self.install_ready).pack(side="left",padx=4)
   ttk.Button(a,text="Open RPG Maker Project Folder",command=self.open_project).pack(side="left",padx=4)
   b=ttk.LabelFrame(box,text="Clip Studio Paint",padding=12);b.pack(fill="x",pady=5)
@@ -233,6 +233,14 @@ class TransferCenter(ttk.Frame):
   try:
    import mz_generator_importer
    r=mz_generator_importer.import_generator_zip(p);self.status.set(f"Imported {r['filesImported']} files and registered {r['componentsAdded']} components; skipped {r['invalidPngsSkipped']} invalid PNGs.")
+   messagebox.showinfo("Import complete",self.status.get())
+  except Exception as e:messagebox.showerror("Import failed",str(e))
+ def import_generator_folder(self):
+  p=filedialog.askdirectory(title="Choose RPG Maker MZ generator folder")
+  if not p:return
+  try:
+   import mz_generator_importer
+   r=mz_generator_importer.import_generator_folder(p);self.status.set(f"Imported {r['filesImported']} files and registered {r['componentsAdded']} components; skipped {r['invalidPngsSkipped']} invalid PNGs.")
    messagebox.showinfo("Import complete",self.status.get())
   except Exception as e:messagebox.showerror("Import failed",str(e))
  def install_ready(self):
