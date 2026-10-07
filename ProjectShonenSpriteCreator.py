@@ -18,7 +18,7 @@ class App(tk.Tk):
   ttk.Label(h,text="Artist Production Workspace").pack(side="left",padx=12)
   body=ttk.Frame(self);body.pack(fill="both",expand=True)
   n=ttk.Frame(body,padding=10);n.pack(side="left",fill="y");self.content=ttk.Frame(body,padding=12);self.content.pack(side="left",fill="both",expand=True)
-  for label,key in [("Characters","characters"),("Reusable Pieces","pieces"),("Body Masters","masters"),("RPG Maker MZ","rpg"),("Library Health","health"),("Settings","settings")]:
+  for label,key in [("Characters","characters"),("Transfer","transfer"),("Reusable Pieces","pieces"),("Body Masters","masters"),("RPG Maker MZ","rpg"),("Library Health","health"),("Settings","settings")]:
    ttk.Button(n,text=label,width=20,command=lambda k=key:self.page(k)).pack(fill="x",pady=3)
  def clear(self):
   for w in self.content.winfo_children():w.destroy()
@@ -37,7 +37,7 @@ class App(tk.Tk):
   elif k=="characters":
    self.heading("Characters","Assemble a character from body-compatible reusable pieces and export an RPG Maker walking sprite.")
    integrated_character_rpg.CharacterBuilder(self.content).pack(fill="both",expand=True)
-  elif k=="rpg":
+  elif k=="transfer":\n   self.heading("Import / Export","Move artwork between RPG Maker MZ, Clip Studio Paint and Project Shonen without managing folders manually.")\n   integrated_character_rpg.TransferCenter(self.content,self).pack(fill="both",expand=True)\n  elif k=="rpg":
    self.heading("RPG Maker MZ","Review staged graphics and install them with automatic timestamped replacement backups.")
    integrated_character_rpg.RPGInstaller(self.content).pack(fill="both",expand=True)
   elif k=="health":
