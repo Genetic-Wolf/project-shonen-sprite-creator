@@ -37,7 +37,10 @@ class App(tk.Tk):
   elif k=="characters":
    self.heading("Characters","Assemble a character from body-compatible reusable pieces and export an RPG Maker walking sprite.")
    integrated_character_rpg.CharacterBuilder(self.content).pack(fill="both",expand=True)
-  elif k=="transfer":\n   self.heading("Import / Export","Move artwork between RPG Maker MZ, Clip Studio Paint and Project Shonen without managing folders manually.")\n   integrated_character_rpg.TransferCenter(self.content,self).pack(fill="both",expand=True)\n  elif k=="rpg":
+  elif k=="transfer":
+   self.heading("Import / Export","Move artwork between RPG Maker MZ, Clip Studio Paint and Project Shonen without managing folders manually.")
+   integrated_character_rpg.TransferCenter(self.content,self).pack(fill="both",expand=True)
+  elif k=="rpg":
    self.heading("RPG Maker MZ","Review staged graphics and install them with automatic timestamped replacement backups.")
    integrated_character_rpg.RPGInstaller(self.content).pack(fill="both",expand=True)
   elif k=="health":
@@ -62,7 +65,11 @@ class App(tk.Tk):
   if not p:return
   try:
    r=mz_generator_importer.import_generator_zip(p)
-   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.\nRegistered {r['componentsAdded']} reusable components.\nSkipped {r['invalidPngsSkipped']} invalid PNG entries.\n\nThe stock artwork remains in your private local Sprite Creator data.")
+   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.
+Registered {r['componentsAdded']} reusable components.
+Skipped {r['invalidPngsSkipped']} invalid PNG entries.
+
+The stock artwork remains in your private local Sprite Creator data.")
    self.page("characters")
   except Exception as e:messagebox.showerror("Import failed",str(e))
  def run(self,n):
