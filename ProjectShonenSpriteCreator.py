@@ -65,13 +65,10 @@ class App(tk.Tk):
   if not p:return
   try:
    r=mz_generator_importer.import_generator_zip(p)
-   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.
-Registered {r['componentsAdded']} reusable components.
-Skipped {r['invalidPngsSkipped']} invalid PNG entries.
-
-The stock artwork remains in your private local Sprite Creator data.")
+   messagebox.showinfo("RPG Maker MZ import complete",f"Imported {r['filesImported']} valid files.\\nRegistered {r['componentsAdded']} reusable components.\\nSkipped {r['invalidPngsSkipped']} invalid PNG entries.\\n\\nThe stock artwork remains in your private local Sprite Creator data.")
    self.page("characters")
   except Exception as e:messagebox.showerror("Import failed",str(e))
+
  def run(self,n):
   p=ROOT/n
   if p.exists():subprocess.Popen([sys.executable,str(p)])
