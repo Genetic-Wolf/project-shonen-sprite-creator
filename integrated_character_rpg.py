@@ -3,7 +3,7 @@ from tkinter import ttk,messagebox,filedialog
 from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk
-import json,shutil,time,re
+import json,shutil,time,re\nimport asset_package
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -161,6 +161,26 @@ class CharacterBuilder(ttk.Frame):
   d=ROOT/"character_projects";d.mkdir(parents=True,exist_ok=True);path=d/f"{safe}.pscharacter.json"
   save(path,{"schemaVersion":1,"name":self.name.get().strip(),"masterId":m["id"],"masterKey":m["key"],"layers":[self.lib["assets"][i]["id"] for i in self.selected]})
   messagebox.showinfo("Character project saved",f"Saved {path.name}.")
+ def export_package(self):
+  lib=load(LIB,{"assets":[]});eligible=[a for a in lib.get("assets",[]) if not str(a.get("source","")).startswith("RPG Maker MZ")]
+  if not eligible:messagebox.showinfo("No custom pieces","Create or import a Project Shonen reusable piece first.");return
+  win=tk.Toplevel(self);win.title("Export Reusable Piece");win.transient(self.winfo_toplevel());v=tk.StringVar(value=eligible[0].get("name",""))
+  ttk.Label(win,text="Choose a custom reusable piece").pack(anchor="w",padx=12,pady=(12,4));cb=ttk.Combobox(win,textvariable=v,values=[a.get("name","") for a in eligible],state="readonly",width=55);cb.pack(padx=12,pady=4)
+  def go():
+   a=next(x for x in eligible if x.get("name")==v.get());p=filedialog.asksaveasfilename(defaultextension=".psasset",filetypes=[("Project Shonen Asset","*.psasset")],initialfile=re.sub(r'[^A-Za-z0-9_-]+','_',a.get("name","Asset"))+".psasset")
+   if not p:return
+   try:r=asset_package.export_piece(a["id"],p);win.destroy();messagebox.showinfo("Package exported",f"{r['name']} exported with {r['files']} artwork files.")
+   except Exception as e:messagebox.showerror("Export failed",str(e))
+  ttk.Button(win,text="Export Package",command=go).pack(padx=12,pady=12)
+ def import_package(self):
+  p=filedialog.askopenfilename(title="Import Project Shonen reusable piece",filetypes=[("Project Shonen Asset","*.psasset"),("All files","*.*")])
+  if not p:return
+  try:
+   m=asset_package.inspect_package(p);a=m["asset"];lib=load(LIB,{"assets":[]});collision=any(x.get("id")==a.get("id") for x in lib.get("assets",[]));replace=False
+   if collision:replace=messagebox.askyesno("Asset already exists",f'{a.get("name")} ({a.get("id")}) already exists. Replace its registered package artwork?')
+   if collision and not replace:return
+   r=asset_package.import_piece(p,replace=replace);self.status.set(f"Imported portable asset: {r['name']}.");messagebox.showinfo("Package imported",self.status.get())
+  except Exception as e:messagebox.showerror("Import failed",str(e))
  def open_project(self):
   d=ROOT/"character_projects";d.mkdir(parents=True,exist_ok=True)
   p=filedialog.askopenfilename(initialdir=d,filetypes=[("Project Shonen Character","*.pscharacter.json"),("JSON","*.json")])
@@ -218,6 +238,9 @@ class TransferCenter(ttk.Frame):
   ttk.Button(a,text="Import Generator Folder",command=self.import_generator_folder).pack(side="left",padx=4)
   ttk.Button(a,text="Export / Install Ready Content",command=self.install_ready).pack(side="left",padx=4)
   ttk.Button(a,text="Open RPG Maker Project Folder",command=self.open_project).pack(side="left",padx=4)
+  pbox=ttk.LabelFrame(box,text="Portable Project Shonen Assets",padding=12);pbox.pack(fill="x",pady=5)
+  ttk.Button(pbox,text="Export Reusable Piece Package",command=self.export_package).pack(side="left",padx=4)
+  ttk.Button(pbox,text="Import Reusable Piece Package",command=self.import_package).pack(side="left",padx=4)
   b=ttk.LabelFrame(box,text="Clip Studio Paint",padding=12);b.pack(fill="x",pady=5)
   ttk.Button(b,text="Open Artist Workspace",command=self.open_workspace).pack(side="left",padx=4)
   ttk.Button(b,text="Import Finished PNG",command=lambda:self.goto("pieces")).pack(side="left",padx=4)
