@@ -3,7 +3,7 @@ from tkinter import ttk,filedialog,messagebox
 from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk,ImageDraw
-import json,shutil,os,zipfile,xml.etree.ElementTree as ET
+import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
