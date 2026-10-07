@@ -195,6 +195,76 @@ class CharacterBuilder(ttk.Frame):
    else:blocked.append(out)
   messagebox.showinfo("Character export summary","Exported: "+(", ".join(ready) if ready else "none")+"\\nBlocked/incomplete: "+(", ".join(blocked) if blocked else "none"))
 
+class TransferCenter(ttk.Frame):
+ def __init__(self,parent,app=None):
+  super().__init__(parent);self.app=app;self.cfg=load(SET,{});self.status=tk.StringVar(value="Ready. Configure locations once, then use the transfer buttons.");self.build()
+ def build(self):
+  paths=ttk.LabelFrame(self,text="Connected Programs",padding=10);paths.pack(fill="x",pady=(0,10))
+  self.project=tk.StringVar(value=self.cfg.get("rpgMakerProject",""));self.csp=tk.StringVar(value=self.cfg.get("clipStudio",""))
+  ttk.Label(paths,text="RPG Maker MZ Project").grid(row=0,column=0,sticky="w");ttk.Entry(paths,textvariable=self.project,width=70).grid(row=0,column=1,sticky="ew",padx=6);ttk.Button(paths,text="Choose",command=self.choose_project).grid(row=0,column=2)
+  ttk.Label(paths,text="Clip Studio Paint").grid(row=1,column=0,sticky="w",pady=5);ttk.Entry(paths,textvariable=self.csp,width=70).grid(row=1,column=1,sticky="ew",padx=6);ttk.Button(paths,text="Choose",command=self.choose_csp).grid(row=1,column=2)
+  paths.columnconfigure(1,weight=1)
+  box=ttk.Frame(self);box.pack(fill="both",expand=True)
+  a=ttk.LabelFrame(box,text="RPG Maker MZ",padding=12);a.pack(fill="x",pady=5)
+  ttk.Button(a,text="Import Generator Assets",command=self.import_generator).pack(side="left",padx=4)
+  ttk.Button(a,text="Export / Install Ready Content",command=self.install_ready).pack(side="left",padx=4)
+  ttk.Button(a,text="Open RPG Maker Project Folder",command=self.open_project).pack(side="left",padx=4)
+  b=ttk.LabelFrame(box,text="Clip Studio Paint",padding=12);b.pack(fill="x",pady=5)
+  ttk.Button(b,text="Open Artist Workspace",command=self.open_workspace).pack(side="left",padx=4)
+  ttk.Button(b,text="Import Finished PNG",command=lambda:self.goto("pieces")).pack(side="left",padx=4)
+  ttk.Button(b,text="Create / Edit Reusable Piece",command=lambda:self.goto("pieces")).pack(side="left",padx=4)
+  ttk.Label(self,textvariable=self.status,wraplength=900).pack(anchor="w",pady=12)
+  ttk.Label(self,text="Transfers validate destinations and preserve RPG Maker files with timestamped backups before replacement.",wraplength=900).pack(anchor="w")
+ def persist(self):
+  self.cfg["rpgMakerProject"]=self.project.get();self.cfg["clipStudio"]=self.csp.get();save(SET,self.cfg)
+  if self.app is not None:self.app.cfg.update(self.cfg)
+ def choose_project(self):
+  p=filedialog.askdirectory(title="Choose RPG Maker MZ project")
+  if not p:return
+  q=Path(p)
+  if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Not an RPG Maker MZ project","Choose the project root containing the img and data folders.");return
+  self.project.set(p);self.persist();self.status.set("RPG Maker MZ project connected.")
+ def choose_csp(self):
+  p=filedialog.askopenfilename(title="Choose Clip Studio Paint",filetypes=[("Windows program","*.exe"),("All files","*.*")])
+  if p:self.csp.set(p);self.persist();self.status.set("Clip Studio Paint connected.")
+ def import_generator(self):
+  p=filedialog.askopenfilename(title="Select RPG Maker MZ generator ZIP",filetypes=[("ZIP archive","*.zip")])
+  if not p:return
+  try:
+   import mz_generator_importer
+   r=mz_generator_importer.import_generator_zip(p);self.status.set(f"Imported {r['filesImported']} files and registered {r['componentsAdded']} components; skipped {r['invalidPngsSkipped']} invalid PNGs.")
+   messagebox.showinfo("Import complete",self.status.get())
+  except Exception as e:messagebox.showerror("Import failed",str(e))
+ def install_ready(self):
+  q=Path(self.project.get())
+  if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Setup required","Connect a valid RPG Maker MZ project first.");return
+  staged=sum(len(list((ROOT/"exports"/typ).glob("*.png"))) for typ in DEST if (ROOT/"exports"/typ).exists())
+  if not staged:messagebox.showinfo("Nothing to transfer","No exported character graphics are staged yet. Export a character first.");return
+  if not messagebox.askyesno("Export to RPG Maker MZ",f"Install {staged} staged graphics into the connected RPG Maker MZ project? Existing same-name files will be backed up first."):return
+  stamp=time.strftime("%Y%m%d-%H%M%S");bak=ROOT/"backups"/stamp;installed=backed=0
+  for typ,dest in DEST.items():
+   src=ROOT/"exports"/typ
+   if not src.exists():continue
+   dd=q/dest;dd.mkdir(parents=True,exist_ok=True)
+   for p in src.glob("*.png"):
+    target=dd/p.name
+    if target.exists():
+     bd=bak/dest;bd.mkdir(parents=True,exist_ok=True);shutil.copy2(target,bd/p.name);backed+=1
+    shutil.copy2(p,target);installed+=1
+  self.status.set(f"Transfer complete: {installed} installed, {backed} replaced files backed up.")
+  messagebox.showinfo("Transfer complete",self.status.get())
+ def open_project(self):
+  q=Path(self.project.get())
+  if not q.exists():messagebox.showerror("Project not connected","Choose the RPG Maker MZ project first.");return
+  try:__import__("os").startfile(q)
+  except Exception as e:messagebox.showerror("Could not open folder",str(e))
+ def open_workspace(self):
+  d=ROOT/"artist_workspace";d.mkdir(parents=True,exist_ok=True)
+  try:__import__("os").startfile(d)
+  except Exception as e:messagebox.showerror("Could not open workspace",str(e))
+ def goto(self,page):
+  if self.app is not None:self.app.page(page)
+
 class RPGInstaller(ttk.Frame):
  def __init__(self,parent):
   super().__init__(parent);self.cfg=load(SET,{});self.build()
