@@ -28,7 +28,7 @@ def load(p,d):
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 class CharacterBuilder(ttk.Frame):
  def __init__(self,parent):
-  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
+  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
@@ -47,7 +47,7 @@ class CharacterBuilder(ttk.Frame):
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
-  self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(left,textvariable=self.pieceinfo,wraplength=430).pack(anchor="w",pady=4)
+  pv=ttk.Frame(left);pv.pack(fill="x",pady=4)\n  self.thumb=tk.Label(pv,text="No preview",width=14,height=6,relief="groove");self.thumb.pack(side="left",padx=(0,6))\n  self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(pv,textvariable=self.pieceinfo,wraplength=300).pack(side="left",anchor="nw")\n  ttk.Button(left,text="None for Current Category",command=self.none_current).pack(anchor="w",pady=(0,4))
   ttk.Label(mid,text="Selected Components",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   ttk.Label(mid,text="The base body is always present. Hair, face, clothing and other parts start empty.",wraplength=250).pack(anchor="w",pady=(0,5))
   self.sel=tk.Listbox(mid);self.sel.pack(fill="both",expand=True)
@@ -76,7 +76,7 @@ class CharacterBuilder(ttk.Frame):
   else:
    self.category.set("All");self.field_hint.set("These fields are accessible but no compatible artwork has been imported/created for them yet: "+", ".join(fields))
   self.refresh()
- def clear_components(self):
+ def none_current(self):\n  cat=self.category.get()\n  if cat=="All":return\n  self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.preview()\n def clear_components(self):
   self.selected=[];self.renderstack();self.preview()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
  def on_master_changed(self,event=None):
