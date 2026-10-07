@@ -7,8 +7,7 @@ ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
 REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
-CATEGORIES=["Hair Back","Hair Front","Eyes","Eyebrows","Mouth","Facial Mark","Clothing Back","Clothing Front","Armor","Cloak","Headgear","Accessory Back","Accessory Front","Weapon Back","Weapon Hip","Weapon Hand"]
-CATKEY={x:x.replace(" ","_") for x in CATEGORIES}
+CATEGORIES=["Face / Shape","Face / Eyes","Face / Eyebrows","Face / Nose","Face / Mouth","Face / Ears","Face / Facial Hair","Face / Markings","Face / Dōjutsu","Face / Scars","Face / Tattoos","Face / Clan Markings","Hair / Rear","Hair / Main","Hair / Front","Hair / Ponytail","Hair / Accessories","Clothing / Undershirt","Clothing / Shirt","Clothing / Pants","Clothing / Skirt","Clothing / Belt","Clothing / Gloves","Clothing / Shoes","Armor / Chest","Armor / Shoulders","Armor / Arms","Armor / Legs","Shinobi / Forehead Protector","Shinobi / Village Symbol","Shinobi / Tool Pouch","Shinobi / Kunai Holster","Shinobi / Scrolls","Outerwear / Vest","Outerwear / Coat","Outerwear / Robe","Outerwear / Cloak","Accessories / Head","Accessories / Face","Accessories / Neck","Accessories / Hands","Accessories / Back","Weapons / Back","Weapons / Left Hip","Weapons / Right Hip","Weapons / Left Hand","Weapons / Right Hand","Special / Tail","Special / Wings","Special / Beast Ears","Special / Clan Features","Special / Transformation Features"]\nCATKEY={x:x for x in CATEGORIES}
 BODYTYPES=["Small","Standard","Tall","Athletic","Chubby","Heavy","Custom"]
 FAMILIES=["Female","Male","Youth","Child","Custom"]
 def load(p,d):
@@ -19,7 +18,7 @@ def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 def new_piece_dialog(parent,on_done=None):
  data=load(REG,{"masters":[]});lib=load(LIB,{"assets":[]})
  w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("570x430");w.transient(parent);w.grab_set()
- name=tk.StringVar();cat=tk.StringVar(value="Hair Front")
+ name=tk.StringVar();cat=tk.StringVar(value="Hair / Front")
  masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=masters[0] if masters else "")
  ttk.Label(w,text="Create Reusable Piece",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
  ttk.Label(w,text="Use normal names. The program assigns the internal ID and file locations.",wraplength=520).pack(anchor="w",padx=18,pady=(0,12))
@@ -44,7 +43,7 @@ def new_piece_dialog(parent,on_done=None):
   # Existing Asset Studio owns the proven multi-output ORA workflow.
   subprocess.Popen([sys.executable,str(ROOT/"ProjectShonenAssetStudio.py")])
   if on_done:on_done()
- ttk.Button(w,text="Create Piece & Open Artwork Workspace",command=create).pack(pady=18)
+ ttk.Button(w,text="Create Piece",command=create).pack(pady=18)
 
 def new_master_dialog(parent,on_done=None):
  w=tk.Toplevel(parent);w.title("Create New Body Master");w.geometry("590x470");w.transient(parent);w.grab_set()
