@@ -137,18 +137,31 @@ class CharacterBuilder(ttk.Frame):
   mo=m["outputs"].get(out,{})
   base=app_paths.resolve(mo.get("base",""))
   if not base.exists():return None,[f"Body master {out} artwork is missing"]
-  canvas=Image.open(base).convert("RGBA");missing=[]
-  for i in self.selected:
+  body=Image.open(base).convert("RGBA");missing=[];back=[];front=[]
+  back_categories={"RearHair","Cloak","Tail","Wing"}
+  for order,i in enumerate(self.selected):
    a=self.lib["assets"][i];o=a.get("outputs",{}).get(out,{})
    if o.get("status")!="complete" or not o.get("path"):missing.append(f'{a["name"]} ({out})');continue
-   paths=o.get("paths") or ([o.get("path")] if o.get("path") else [])
-   for rel in paths:
+   layers=o.get("layers")
+   if layers:
+    entries=[(x.get("path"),int(x.get("nativeLayer",0) or 0)) for x in layers]
+   else:
+    entries=[(p,0) for p in (o.get("paths") or ([o.get("path")] if o.get("path") else []))]
+   native=a.get("nativeCategory","")
+   for seq,(rel,nlayer) in enumerate(entries):
     q=app_paths.resolve(rel)
-    if q.exists():
-     im=Image.open(q).convert("RGBA")
-     if im.size==canvas.size:canvas.alpha_composite(im)
-     else:missing.append(f'{a["name"]} ({out} wrong size)')
-    else:missing.append(f'{a["name"]} ({out} file missing)')
+    if not q.exists():missing.append(f'{a["name"]} ({out} file missing)');continue
+    try: im=Image.open(q).convert("RGBA")
+    except Exception:missing.append(f'{a["name"]} ({out} unreadable)');continue
+    if im.size!=body.size:missing.append(f'{a["name"]} ({out} wrong size)');continue
+    # MZ split components conventionally use layer 1 behind the body and layer 2 in front.
+    # For single-layer rear categories, place them behind; ordinary single-layer pieces stay in front.
+    behind=(nlayer==1) or (nlayer==0 and native in back_categories)
+    (back if behind else front).append((order,seq,im))
+  canvas=Image.new("RGBA",body.size,(0,0,0,0))
+  for _,__,im in sorted(back,key=lambda x:(x[0],x[1])):canvas.alpha_composite(im)
+  canvas.alpha_composite(body)
+  for _,__,im in sorted(front,key=lambda x:(x[0],x[1])):canvas.alpha_composite(im)
   return canvas,missing
  def master_ready(self,out):
   m=self.currentmaster()
