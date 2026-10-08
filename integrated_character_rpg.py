@@ -4,7 +4,7 @@ from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk
 import json,shutil,time,re
-import asset_package
+import asset_package\nimport embedded_workflows
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -47,6 +47,9 @@ class CharacterBuilder(ttk.Frame):
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
+  choose=ttk.Frame(left);choose.pack(fill="x",pady=4)
+  ttk.Button(choose,text="Use Selected Piece",command=self.add).pack(side="left")
+  ttk.Button(choose,text="+ New Piece",command=self.new_piece).pack(side="left",padx=4)
   pv=ttk.Frame(left);pv.pack(fill="x",pady=4)
   self.thumb=tk.Label(pv,text="No preview",width=14,height=6,relief="groove");self.thumb.pack(side="left",padx=(0,6))
   self.pieceinfo=tk.StringVar(value="Select a piece to preview it.");ttk.Label(pv,textvariable=self.pieceinfo,wraplength=300).pack(side="left",anchor="nw")
@@ -78,6 +81,13 @@ class CharacterBuilder(ttk.Frame):
    self.category.set(choices[0]);self.field_hint.set("Fields: "+", ".join(fields)+". Use Category to select any individual field.")
   else:
    self.category.set("All");self.field_hint.set("These fields are accessible but no compatible artwork has been imported/created for them yet: "+", ".join(fields))
+  self.refresh()
+ def new_piece(self):
+  m=self.currentmaster()
+  if not m:return
+  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library)
+ def reload_library(self):
+  self.lib=load(LIB,{"assets":[]})
   self.refresh()
  def none_current(self):
   cat=self.category.get()
