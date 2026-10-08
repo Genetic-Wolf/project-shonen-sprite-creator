@@ -114,12 +114,20 @@ def _register_existing(dest,valid=0,invalid=0):
     if not m:continue
     _,cat,layer,pid=m.groups()
     if cat.lower()=="body":continue
-    groups.setdefault((sex,cat,int(pid)),{}).setdefault(rep,[]).append((_rel(f),int(layer or 0),f.name))
+    role="mask" if rep in ("TV","TVD","SV") and re.search(r"_c(?:\\.|_)",f.name,re.I) else "art"
+    groups.setdefault((sex,cat,int(pid)),{}).setdefault(rep,[]).append((_rel(f),int(layer or 0),f.name,role))
  libp=app_paths.DATA_ROOT/"library.json";lib=_load(libp,{"version":"0.22.0","assets":[]});assets=lib.setdefault("assets",[]);byid={a.get("id"):a for a in assets};added=updated=0
  for (sex,cat,pid),reps in sorted(groups.items(),key=lambda x:(x[0][0],x[0][1],x[0][2])):
   aid=f"MZ-{sex.upper()}-{cat.upper()}-{pid:03d}";outputs={}
   for rep,entries in reps.items():
-   ordered=sorted(entries,key=lambda x:(x[1],x[2]));paths=[x[0] for x in ordered];layers=[{"path":x[0],"nativeLayer":x[1],"filename":x[2]} for x in ordered];outputs[rep]={"status":"complete","paths":paths,"layers":layers,"path":paths[0]}
+   ordered=sorted(entries,key=lambda x:(x[1],x[2]))
+   art=[x for x in ordered if x[3]=="art"];masks=[x for x in ordered if x[3]=="mask"]
+   # MZ TV/TVD/SV *_c files are color-mask companions. Preserve them for recoloring,
+   # but never expose them to the character compositor as visible artwork.
+   if not art:continue
+   paths=[x[0] for x in art];layers=[{"path":x[0],"nativeLayer":x[1],"filename":x[2],"role":"art"} for x in art]
+   outputs[rep]={"status":"complete","paths":paths,"layers":layers,"path":paths[0]}
+   if masks:outputs[rep]["masks"]=[{"path":x[0],"nativeLayer":x[1],"filename":x[2],"role":"colorMask"} for x in masks]
   record={"id":aid,"name":f"MZ {cat} {pid:02d}","category":CATEGORY_MAP.get(cat,cat),"body":f"MZ_{sex}_Standard","masterId":f"PS-MZ-{sex.upper()}-STANDARD","source":"RPG Maker MZ (user-owned local import)","nativeCategory":cat,"nativePartId":pid,"outputs":outputs}
   if aid in byid and str(byid[aid].get("source","")).startswith("RPG Maker MZ"):
    byid[aid].update(record);updated+=1
