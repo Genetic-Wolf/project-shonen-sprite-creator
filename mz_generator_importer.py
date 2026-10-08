@@ -15,7 +15,7 @@ CATEGORY_MAP={
  "Tail":"Special / Tail","Wing":"Special / Wings","Clothing1":"Clothing","Clothing2":"Clothing","Cloak1":"Outerwear / Cloak","Cloak2":"Outerwear / Cloak"
 }
 SEXES=("Female","Male","Kid")
-RX=re.compile(r"^(FG|TV|TVD|SV|icon)_([^_]+?)([12])?_p(\\d+)",re.I)
+RX=re.compile(r"^(FG|TV|TVD|SV|icon)_([^_]+?)([12])?_p(\d+)",re.I)
 def _find_body(dest,rep,sex):
  d=dest/REP_DIR.get(rep,rep)/sex
  if not d.exists():return None
