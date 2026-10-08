@@ -100,7 +100,13 @@ class CharacterBuilder(ttk.Frame):
      try:ph=self.thumbnail(p,64);self.bodyphotos.append(ph)
      except Exception:ph=None
    source=m.get("source","")
-   if m.get("status")=="reference" or str(source).startswith("RPG Maker MZ"):\n    kind="Imported MZ Reference"\n   else:\n    status=str(m.get("status","draft")).replace("_"," ").title()\n    kind="Project Shonen • "+status\n   label=("✓ " if selected else "")+m.get("name","Body")+"\\n"+kind\n   ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=22).pack()
+   if m.get("status")=="reference" or str(source).startswith("RPG Maker MZ"):
+    kind="Imported MZ Reference"
+   else:
+    status=str(m.get("status","draft")).replace("_"," ").title()
+    kind="Project Shonen • "+status
+   label=("✓ " if selected else "")+m.get("name","Body")+"\n"+kind
+   ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=22).pack()
  def choose_body(self,name):
   if name==self.master_name.get():return
   self.master_name.set(name);self.on_master_changed();self.render_bodies()
