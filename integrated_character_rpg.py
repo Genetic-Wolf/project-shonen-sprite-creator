@@ -29,7 +29,7 @@ def load(p,d):
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 class CharacterBuilder(ttk.Frame):
  def __init__(self,parent):
-  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.bodyphotos=[];self.thumbcache={};self.active_group=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
+  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.palette={};self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.bodyphotos=[];self.thumbcache={};self.active_group=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
@@ -211,7 +211,31 @@ class CharacterBuilder(ttk.Frame):
  def renderstack(self):
   self.sel.delete(0,"end")
   for i in self.selected:
-   a=self.lib["assets"][i];self.sel.insert("end",f'{a.get("category","Other")}: {a["name"]}')
+   a=self.lib["assets"][i];mark=" • palette" if a.get("id") in self.palette else "";self.sel.insert("end",f'{a.get("category","Other")}: {a["name"]}{mark}')
+ def palette_editor(self):
+  s=self.sel.curselection()
+  if not s:messagebox.showinfo("Choose a component","Select a component in Selected Components first.");return
+  a=self.lib["assets"][self.selected[s[0]]];aid=a.get("id");maskouts=[]
+  for out,o in a.get("outputs",{}).items():
+   if o.get("masks"):maskouts.append(out)
+  if not maskouts:
+   messagebox.showinfo("No palette channels","This component has no preserved RPG Maker color-mask channels.");return
+  w=tk.Toplevel(self);w.title("Non-destructive Palette — "+a.get("name",aid));w.transient(self.winfo_toplevel());w.grab_set()
+  ttk.Label(w,text="Palette intent",font=("TkDefaultFont",12,"bold")).pack(anchor="w",padx=14,pady=(14,4))
+  ttk.Label(w,text="These choices are saved with the character and never modify the source artwork. Live recoloring will activate after the native MZ gradient mapping is fully validated.",wraplength=560).pack(anchor="w",padx=14,pady=(0,10))
+  ttk.Label(w,text="Mask data available for: "+", ".join(maskouts)).pack(anchor="w",padx=14,pady=(0,8))
+  current=self.palette.get(aid,{})
+  vars={}
+  for channel in ("Primary","Secondary","Trim","Accent"):
+   row=ttk.Frame(w);row.pack(fill="x",padx=14,pady=3);ttk.Label(row,text=channel,width=14).pack(side="left")
+   v=tk.StringVar(value=current.get(channel,"Default"));vars[channel]=v
+   ttk.Combobox(row,textvariable=v,values=["Default","Black","Brown","Red","Orange","Yellow","Green","Blue","Purple","Pink","White","Gray"],state="readonly",width=18).pack(side="left")
+  def apply():
+   vals={k:v.get() for k,v in vars.items() if v.get()!="Default"}
+   if vals:self.palette[aid]=vals
+   else:self.palette.pop(aid,None)
+   w.destroy();self.renderstack()
+  ttk.Button(w,text="Save Palette Choices",command=apply).pack(pady=14)
  def move(self,d):
   s=self.sel.curselection()
   if not s:return
@@ -280,7 +304,7 @@ class CharacterBuilder(ttk.Frame):
   if not m:return
   safe=re.sub(r'[^A-Za-z0-9_-]+','_',self.name.get().strip()) or "Character"
   d=ROOT/"character_projects";d.mkdir(parents=True,exist_ok=True);path=d/f"{safe}.pscharacter.json"
-  save(path,{"schemaVersion":1,"name":self.name.get().strip(),"masterId":m["id"],"masterKey":m["key"],"layers":[self.lib["assets"][i]["id"] for i in self.selected]})
+  save(path,{"schemaVersion":1,"name":self.name.get().strip(),"masterId":m["id"],"masterKey":m["key"],"layers":[self.lib["assets"][i]["id"] for i in self.selected],"palette":self.palette})
   messagebox.showinfo("Character project saved",f"Saved {path.name}.")
  def export_package(self):
   lib=load(LIB,{"assets":[]});eligible=[a for a in lib.get("assets",[]) if not str(a.get("source","")).startswith("RPG Maker MZ")]
@@ -309,7 +333,7 @@ class CharacterBuilder(ttk.Frame):
   data=load(Path(p),{});m=next((m for m in self.reg["masters"] if m.get("id")==data.get("masterId") or m.get("key")==data.get("masterKey")),None)
   if not m:messagebox.showerror("Missing body master","This character references a body master that is not installed.");return
   self.master_name.set(m["name"]);self.name.set(data.get("name","Character"));idx={a.get("id"):i for i,a in enumerate(self.lib["assets"])};ids=data.get("layers",[])
-  missing=[x for x in ids if x not in idx];self.selected=[idx[x] for x in ids if x in idx];self.renderstack();self.refresh();self.preview()
+  missing=[x for x in ids if x not in idx];self.selected=[idx[x] for x in ids if x in idx];self.palette=data.get("palette",{}) if isinstance(data.get("palette",{}),dict) else {};self.renderstack();self.refresh();self.preview()
   if missing:messagebox.showwarning("Missing pieces","Character opened, but some saved pieces are no longer installed.")
  def export_one(self,out,quiet=False):
   ok,why=self.master_ready(out)
