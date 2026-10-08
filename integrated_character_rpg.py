@@ -49,7 +49,8 @@ class CharacterBuilder(ttk.Frame):
   for group,fields in CUSTOMIZATION_FIELDS:
    ttk.Button(slots,text=group,command=lambda fs=fields:self.show_fields(fs)).pack(side="left",padx=1,pady=1)
   self.field_hint=tk.StringVar(value="All customization fields are available. Choose a group above or use Category.")
-  ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,5))
+  ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,3))
+  self.slotcounts=tk.StringVar(value="");ttk.Label(left,textvariable=self.slotcounts,wraplength=430).pack(anchor="w",pady=(0,4))
   ttk.Label(left,text="Visual Selector",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   gw=ttk.Frame(left);gw.pack(fill="x",pady=(2,5))
   self.gallery=tk.Canvas(gw,height=135,highlightthickness=0);self.gallerybar=ttk.Scrollbar(gw,orient="horizontal",command=self.gallery.xview);self.gallery.configure(xscrollcommand=self.gallerybar.set)
@@ -144,6 +145,12 @@ class CharacterBuilder(ttk.Frame):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
     o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"));shown+=1
   self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")
+  counts={}
+  for a in self.lib.get("assets",[]):
+   if self.compatible(a,m):counts[a.get("category","Other")]=counts.get(a.get("category","Other"),0)+1
+  cat=self.category.get()
+  if cat!="All":self.slotcounts.set(f"{cat}: {counts.get(cat,0)} available")
+  else:self.slotcounts.set(f"{sum(counts.values())} compatible pieces across {len(counts)} populated slots")
   self.render_gallery()
   self.preview()
  def render_gallery(self):
