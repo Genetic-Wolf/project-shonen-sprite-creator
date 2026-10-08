@@ -68,6 +68,9 @@ class PieceEditor(ttk.Frame):
   self.list=tk.Listbox(l);self.list.pack(fill="both",expand=True);self.list.bind("<<ListboxSelect>>",self.select)
   for a in self.lib["assets"]:self.list.insert("end",a.get("name",a["id"]))
   self.name=tk.StringVar(value="Select a reusable piece");ttk.Label(r,textvariable=self.name,font=("TkDefaultFont",13,"bold")).pack(anchor="w")
+  actions=ttk.Frame(r);actions.pack(fill="x",pady=(4,2))
+  ttk.Button(actions,text="Import Artwork",command=self.smart_import).pack(side="left")
+  ttk.Label(actions,text="Automatically validates and routes PNG artwork to the selected piece.",wraplength=430).pack(side="left",padx=8)
   self.cards=ttk.Frame(r);self.cards.pack(fill="x",pady=8);self.status={}
   for k,(label,size) in OUTS.items():
    f=ttk.LabelFrame(self.cards,text=label,padding=6);f.pack(fill="x",pady=2)
@@ -109,6 +112,50 @@ class PieceEditor(ttk.Frame):
   (d/"project_shonen_artwork.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
   try:os.startfile(path)
   except:pass
+ def smart_import(self):
+  a=self.asset()
+  if not a:messagebox.showinfo("Choose a piece","Select the reusable piece this artwork belongs to first.");return
+  p=filedialog.askopenfilename(title="Import finished artwork",filetypes=[("PNG artwork","*.png")])
+  if not p:return
+  p=Path(p)
+  try:im=Image.open(p).convert("RGBA")
+  except Exception as e:messagebox.showerror("Unreadable artwork",str(e));return
+  size=im.size
+  matches=[k for k,v in OUTS.items() if v[1]==size]
+  # Prefer routing metadata from the Creator workspace when available.
+  manifest=None
+  for parent in [p.parent]+list(p.parents)[:4]:
+   mp=parent/"project_shonen_artwork.json"
+   if mp.exists():
+    try:manifest=json.loads(mp.read_text(encoding="utf-8"))
+    except Exception:manifest=None
+    if manifest:break
+  if manifest:
+   if manifest.get("assetId")!=a.get("id"):
+    messagebox.showerror("Different artwork piece","This file belongs to "+str(manifest.get("assetName",manifest.get("assetId")))+". Select that piece before importing it.");return
+   out=manifest.get("output")
+   if out not in OUTS or tuple(manifest.get("expectedSize",[]))!=size:
+    messagebox.showerror("Artwork does not match workspace","The PNG dimensions or output type do not match its Creator workspace.");return
+  elif len(matches)==1:out=matches[0]
+  elif not matches:
+   messagebox.showerror("Unknown canvas size",f"{size[0]}×{size[1]} is not a supported Project Shonen artwork canvas.");return
+  else:
+   w=tk.Toplevel(self);w.title("Confirm Artwork Type");v=tk.StringVar(value=matches[0])
+   ttk.Label(w,text=f"{size[0]}×{size[1]} can represent more than one output. Choose where this artwork belongs.").pack(padx=12,pady=10)
+   ttk.Combobox(w,textvariable=v,values=matches,state="readonly").pack(padx=12,pady=4)
+   def go():w.destroy();self._install_png(a,v.get(),p,im)
+   ttk.Button(w,text="Import Artwork",command=go).pack(pady=12);return
+  self._install_png(a,out,p,im)
+ def _install_png(self,a,out,p,im):
+  m=self.master(a);mo=m.get("outputs",{}).get(out,{}) if m else {}
+  if not m or mo.get("status") not in ("approved","reference") or not mo.get("locked"):
+   messagebox.showerror("Body artwork not ready","This piece cannot be installed until its matching body output is available and locked.");return
+  size=OUTS[out][1]
+  if im.size!=size:messagebox.showerror("Wrong canvas",f"{OUTS[out][0]} artwork must be {size[0]}×{size[1]}.");return
+  d=ROOT/"assets"/"outputs"/out;d.mkdir(parents=True,exist_ok=True);dst=d/f'{a["id"]}_{out}.png';im.save(dst)
+  a.setdefault("outputs",{})[out]={"status":"complete","path":str(dst.relative_to(ROOT)).replace("\\","/")}
+  if out=="TV":a["path"]=a["outputs"][out]["path"]
+  save(LIB,self.lib);self.select();messagebox.showinfo("Artwork installed",a["name"]+" "+OUTS[out][0]+" artwork is now available to the character creator.")
  def importpng(self,out):
   a=self.asset()
   if not a:return
