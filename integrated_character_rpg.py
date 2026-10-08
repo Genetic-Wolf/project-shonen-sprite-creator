@@ -59,7 +59,7 @@ class CharacterBuilder(ttk.Frame):
   self.gallery.pack(fill="x");self.gallerybar.pack(fill="x")
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
-  self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
+  self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="Outputs");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
   choose=ttk.Frame(left);choose.pack(fill="x",pady=4)
   ttk.Button(choose,text="Use Selected Piece",command=self.add).pack(side="left")
   ttk.Button(choose,text="+ New Piece",command=self.new_piece).pack(side="left",padx=4)
@@ -150,7 +150,8 @@ class CharacterBuilder(ttk.Frame):
   shown=0
   for i,a in enumerate(self.lib["assets"]):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
-    o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"));shown+=1
+    ready=[k for k in ("TV","FG","TVD","SV","Variation") if a.get("outputs",{}).get(k,{}).get("status")=="complete"]
+    self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"/".join(ready) if ready else "missing"));shown+=1
   self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")
   counts={}
   for a in self.lib.get("assets",[]):
