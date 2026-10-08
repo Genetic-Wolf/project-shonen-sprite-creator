@@ -29,7 +29,7 @@ def load(p,d):
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 class CharacterBuilder(ttk.Frame):
  def __init__(self,parent):
-  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
+  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.bodyphotos=[];self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
@@ -37,7 +37,12 @@ class CharacterBuilder(ttk.Frame):
   cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",self.on_master_changed)
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+list(dict.fromkeys([x for _,fs in CUSTOMIZATION_FIELDS for x in fs]+[a.get("category","Other") for a in self.lib["assets"]]));cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
-  pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=10)
+  bodies=ttk.LabelFrame(self,text="Choose Base Body",padding=4);bodies.pack(fill="x",pady=(6,2))
+  self.bodycanvas=tk.Canvas(bodies,height=112,highlightthickness=0);self.bodybar=ttk.Scrollbar(bodies,orient="horizontal",command=self.bodycanvas.xview);self.bodycanvas.configure(xscrollcommand=self.bodybar.set)
+  self.bodyinner=ttk.Frame(self.bodycanvas);self.bodycanvas.create_window((0,0),window=self.bodyinner,anchor="nw");self.bodyinner.bind("<Configure>",lambda e:self.bodycanvas.configure(scrollregion=self.bodycanvas.bbox("all")))
+  self.bodycanvas.pack(fill="x");self.bodybar.pack(fill="x")
+  self.render_bodies()
+  pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=6)
   left=ttk.Frame(pan);mid=ttk.Frame(pan);right=ttk.Frame(pan);pan.add(left,weight=3);pan.add(mid,weight=2);pan.add(right,weight=3)
   ttk.Label(left,text="Customization",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
   slots=ttk.Frame(left);slots.pack(fill="x",pady=(2,6))
@@ -45,6 +50,11 @@ class CharacterBuilder(ttk.Frame):
    ttk.Button(slots,text=group,command=lambda fs=fields:self.show_fields(fs)).pack(side="left",padx=1,pady=1)
   self.field_hint=tk.StringVar(value="All customization fields are available. Choose a group above or use Category.")
   ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,5))
+  ttk.Label(left,text="Visual Selector",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
+  gw=ttk.Frame(left);gw.pack(fill="x",pady=(2,5))
+  self.gallery=tk.Canvas(gw,height=135,highlightthickness=0);self.gallerybar=ttk.Scrollbar(gw,orient="horizontal",command=self.gallery.xview);self.gallery.configure(xscrollcommand=self.gallerybar.set)
+  self.galleryinner=ttk.Frame(self.gallery);self.gallery.create_window((0,0),window=self.galleryinner,anchor="nw");self.galleryinner.bind("<Configure>",lambda e:self.gallery.configure(scrollregion=self.gallery.bbox("all")))
+  self.gallery.pack(fill="x");self.gallerybar.pack(fill="x")
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="TV");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
@@ -75,6 +85,26 @@ class CharacterBuilder(ttk.Frame):
   ttk.Button(y,text="Save Character Project",command=self.save_project).pack(side="left")
   ttk.Button(y,text="Open Character Project",command=self.open_project).pack(side="left",padx=5)
   self.refresh()
+ def render_bodies(self):
+  if not hasattr(self,"bodyinner"):return
+  for w in self.bodyinner.winfo_children():w.destroy()
+  self.bodyphotos=[]
+  for m in sorted(self.reg.get("masters",[]),key=lambda x:(0 if x.get("status")=="reference" else 1,x.get("name",""))):
+   selected=m.get("name")==self.master_name.get();f=ttk.Frame(self.bodyinner,padding=3,relief="sunken" if selected else "groove");f.pack(side="left",padx=3,pady=2)
+   ph=None;o=m.get("outputs",{}).get("TV",{});rel=o.get("base")
+   if rel:
+    p=app_paths.resolve(rel)
+    if p.exists():
+     try:
+      im=Image.open(p).convert("RGBA")
+      if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
+      im.thumbnail((64,64),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.bodyphotos.append(ph)
+     except Exception:ph=None
+   label=("✓ " if selected else "")+m.get("name","Body")
+   ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=18).pack()
+ def choose_body(self,name):
+  if name==self.master_name.get():return
+  self.master_name.set(name);self.on_master_changed();self.render_bodies()
  def show_fields(self,fields):
   w=tk.Toplevel(self);w.title("Choose Customization Slot");w.transient(self.winfo_toplevel())
   ttk.Label(w,text="Choose exactly what you want to customize",font=("TkDefaultFont",11,"bold")).pack(anchor="w",padx=12,pady=(12,6))
@@ -92,7 +122,7 @@ class CharacterBuilder(ttk.Frame):
  def none_current(self):
   cat=self.category.get()
   if cat=="All":return
-  self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.preview()
+  self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.render_gallery();self.preview()
  def clear_components(self):
   self.selected=[];self.renderstack();self.preview()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
@@ -139,12 +169,13 @@ class CharacterBuilder(ttk.Frame):
        if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
        im.thumbnail((72,72),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.cardphotos.append(ph)
       except Exception:ph=None
-    card(a.get("name",a.get("id","Piece")),lambda x=i:self.select_index(x),ph)
+    equipped=i in self.selected
+    card(("✓ " if equipped else "")+a.get("name",a.get("id","Piece")),lambda x=i:self.select_index(x),ph)
   card("+ New",self.new_piece)
  def select_index(self,i):
   a=self.lib["assets"][i];cat=a.get("category","Other")
   self.selected=[x for x in self.selected if self.lib["assets"][x].get("category","Other")!=cat]
-  self.selected.append(i);self.renderstack();self.preview()
+  self.selected.append(i);self.renderstack();self.render_gallery();self.preview()
  def piece_preview(self,event=None):
   sel=self.tree.selection()
   if not sel:return
