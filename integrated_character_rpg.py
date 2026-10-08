@@ -29,7 +29,7 @@ def load(p,d):
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 class CharacterBuilder(ttk.Frame):
  def __init__(self,parent):
-  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
+  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
@@ -76,13 +76,12 @@ class CharacterBuilder(ttk.Frame):
   ttk.Button(y,text="Open Character Project",command=self.open_project).pack(side="left",padx=5)
   self.refresh()
  def show_fields(self,fields):
-  available={a.get("category","Other") for a in self.lib.get("assets",[])}
-  choices=[x for x in fields if x in available]
-  if choices:
-   self.category.set(choices[0]);self.field_hint.set("Fields: "+", ".join(fields)+". Use Category to select any individual field.")
-  else:
-   self.category.set("All");self.field_hint.set("These fields are accessible but no compatible artwork has been imported/created for them yet: "+", ".join(fields))
-  self.refresh()
+  w=tk.Toplevel(self);w.title("Choose Customization Slot");w.transient(self.winfo_toplevel())
+  ttk.Label(w,text="Choose exactly what you want to customize",font=("TkDefaultFont",11,"bold")).pack(anchor="w",padx=12,pady=(12,6))
+  f=ttk.Frame(w);f.pack(fill="both",expand=True,padx=10,pady=(0,10))
+  for n,field in enumerate(fields):
+   ttk.Button(f,text=field,command=lambda x=field:(self.category.set(x),self.field_hint.set("Selected slot: "+x),w.destroy(),self.refresh())).grid(row=n//2,column=n%2,sticky="ew",padx=3,pady=3)
+  f.columnconfigure(0,weight=1);f.columnconfigure(1,weight=1)
  def new_piece(self):
   m=self.currentmaster()
   if not m:return
@@ -115,7 +114,37 @@ class CharacterBuilder(ttk.Frame):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
     o=a.get("outputs",{}).get("TV",{});self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"✓" if o.get("status")=="complete" else "missing"));shown+=1
   self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")
+  self.render_gallery()
   self.preview()
+ def render_gallery(self):
+  if not hasattr(self,"galleryinner"):return
+  for w in self.galleryinner.winfo_children():w.destroy()
+  self.cardphotos=[]
+  cat=self.category.get();m=self.currentmaster()
+  def card(title,command,image=None):
+   f=ttk.Frame(self.galleryinner,padding=4,relief="groove");f.pack(side="left",padx=3,pady=3)
+   b=ttk.Button(f,text=title,image=image,compound="top",command=command,width=15);b.pack()
+  card("None",self.none_current)
+  if m:
+   q=self.search.get().lower().strip()
+   for i,a in enumerate(self.lib.get("assets",[])):
+    if not self.compatible(a,m) or (cat!="All" and a.get("category","Other")!=cat) or (q and q not in a.get("name","").lower() and q not in a.get("category","").lower()):continue
+    ph=None;o=a.get("outputs",{}).get("Variation") or a.get("outputs",{}).get("TV",{})
+    rel=o.get("path") if o else None
+    if rel:
+     p=app_paths.resolve(rel)
+     if p.exists():
+      try:
+       im=Image.open(p).convert("RGBA")
+       if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
+       im.thumbnail((72,72),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.cardphotos.append(ph)
+      except Exception:ph=None
+    card(a.get("name",a.get("id","Piece")),lambda x=i:self.select_index(x),ph)
+  card("+ New",self.new_piece)
+ def select_index(self,i):
+  a=self.lib["assets"][i];cat=a.get("category","Other")
+  self.selected=[x for x in self.selected if self.lib["assets"][x].get("category","Other")!=cat]
+  self.selected.append(i);self.renderstack();self.preview()
  def piece_preview(self,event=None):
   sel=self.tree.selection()
   if not sel:return
