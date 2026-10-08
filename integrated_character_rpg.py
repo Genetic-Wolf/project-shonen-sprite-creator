@@ -99,8 +99,8 @@ class CharacterBuilder(ttk.Frame):
     if p.exists():
      try:ph=self.thumbnail(p,64);self.bodyphotos.append(ph)
      except Exception:ph=None
-   label=("✓ " if selected else "")+m.get("name","Body")
-   ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=18).pack()
+   source=m.get("source","")
+   if m.get("status")=="reference" or str(source).startswith("RPG Maker MZ"):\n    kind="Imported MZ Reference"\n   else:\n    status=str(m.get("status","draft")).replace("_"," ").title()\n    kind="Project Shonen • "+status\n   label=("✓ " if selected else "")+m.get("name","Body")+"\\n"+kind\n   ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=22).pack()
  def choose_body(self,name):
   if name==self.master_name.get():return
   self.master_name.set(name);self.on_master_changed();self.render_bodies()
@@ -120,7 +120,11 @@ class CharacterBuilder(ttk.Frame):
  def new_piece(self):
   m=self.currentmaster()
   if not m:return
-  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library,preferred_body=m.get("name"),preferred_category=self.category.get())
+  preferred=self.category.get()
+  if preferred=="All" and self.active_group:
+   fields=next((fs for g,fs in CUSTOMIZATION_FIELDS if g==self.active_group),[])
+   if len(fields)==1:preferred=fields[0]
+  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library,preferred_body=m.get("name"),preferred_category=preferred)
  def reload_library(self):
   self.lib=load(LIB,{"assets":[]})
   self.refresh()
@@ -129,7 +133,7 @@ class CharacterBuilder(ttk.Frame):
   if cat=="All":return
   self.selected=[i for i in self.selected if self.lib["assets"][i].get("category","Other")!=cat];self.renderstack();self.render_gallery();self.preview()
  def clear_components(self):
-  self.selected=[];self.renderstack();self.preview()
+  self.selected=[];self.renderstack();self.render_gallery();self.preview()
  def currentmaster(self):return next((m for m in self.reg["masters"] if m["name"]==self.master_name.get()),None)
  def on_master_changed(self,event=None):
   # A body change invalidates layers selected for the previous geometry.
@@ -138,6 +142,7 @@ class CharacterBuilder(ttk.Frame):
   if hasattr(self,"baseinfo"):
    m=self.currentmaster();self.baseinfo.set("Base Body: "+(m.get("name","None") if m else "None")+" — no cosmetics selected")
   if hasattr(self,"tree") and hasattr(self,"search"): self.refresh()
+  if hasattr(self,"bodyinner"): self.render_bodies()
   if self.active_group:
    fields=next((fs for g,fs in CUSTOMIZATION_FIELDS if g==self.active_group),[])
    if fields:self.show_fields(self.active_group,fields)
@@ -162,9 +167,14 @@ class CharacterBuilder(ttk.Frame):
   self.render_gallery()
   self.preview()
  def thumbnail(self,p,size):
-  key=(str(p),size)
+  try:stamp=p.stat().st_mtime_ns
+  except OSError:stamp=0
+  key=(str(p),stamp,size)
   ph=self.thumbcache.get(key)
   if ph:return ph
+  # Drop stale cached versions of the same file so edited artwork refreshes immediately.
+  stale=[k for k in self.thumbcache if k[0]==str(p) and k[2]==size and k!=key]
+  for k in stale:self.thumbcache.pop(k,None)
   im=Image.open(p).convert("RGBA")
   if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
   im.thumbnail((size,size),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.thumbcache[key]=ph
