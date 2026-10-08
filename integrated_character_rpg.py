@@ -235,7 +235,7 @@ class CharacterBuilder(ttk.Frame):
    if o.get("status")!="complete" or not o.get("path"):missing.append(f'{a["name"]} ({out})');continue
    layers=o.get("layers")
    if layers:
-    entries=[(x.get("path"),int(x.get("nativeLayer",0) or 0)) for x in layers]
+    entries=[(x.get("path"),int(x.get("nativeLayer",0) or 0)) for x in layers if x.get("role","art")=="art" and not re.search(r"_c(?:\\.|_)",x.get("filename",""),re.I)]
    else:
     entries=[(p,0) for p in (o.get("paths") or ([o.get("path")] if o.get("path") else []))]
    native=re.sub(r"[12]$","",a.get("nativeCategory",""))
