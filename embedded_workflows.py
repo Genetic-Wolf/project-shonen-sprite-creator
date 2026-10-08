@@ -7,7 +7,7 @@ ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
 REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
-CATEGORIES=["Face / Shape","Face / Eyes","Face / Eyebrows","Face / Nose","Face / Mouth","Face / Ears","Face / Facial Hair","Face / Markings","Face / Dōjutsu","Face / Scars","Face / Tattoos","Face / Clan Markings","Hair / Rear","Hair / Main","Hair / Front","Hair / Ponytail","Hair / Accessories","Clothing / Undershirt","Clothing / Shirt","Clothing / Pants","Clothing / Skirt","Clothing / Belt","Clothing / Gloves","Clothing / Shoes","Armor / Chest","Armor / Shoulders","Armor / Arms","Armor / Legs","Shinobi / Forehead Protector","Shinobi / Village Symbol","Shinobi / Tool Pouch","Shinobi / Kunai Holster","Shinobi / Scrolls","Outerwear / Vest","Outerwear / Coat","Outerwear / Robe","Outerwear / Cloak","Accessories / Head","Accessories / Face","Accessories / Neck","Accessories / Hands","Accessories / Back","Weapons / Back","Weapons / Left Hip","Weapons / Right Hip","Weapons / Left Hand","Weapons / Right Hand","Special / Tail","Special / Wings","Special / Beast Ears","Special / Clan Features","Special / Transformation Features"]
+CATEGORIES=["Face / Shape","Face / Eyes","Face / Eyebrows","Face / Nose","Face / Mouth","Face / Ears","Face / Facial Hair","Face / Markings","Face / Dōjutsu","Face / Scars","Face / Tattoos","Face / Clan Markings","Hair / Rear","Hair / Main","Hair / Front","Hair / Ponytail","Hair / Accessories","Clothing / Undershirt","Clothing / Shirt","Clothing / Pants","Clothing / Skirt","Clothing / Belt","Clothing / Gloves","Clothing / Shoes","Clothing","Armor / Chest","Armor / Shoulders","Armor / Arms","Armor / Legs","Armor","Shinobi / Forehead Protector","Shinobi / Village Symbol","Shinobi / Tool Pouch","Shinobi / Kunai Holster","Shinobi / Scrolls","Outerwear / Vest","Outerwear / Coat","Outerwear / Robe","Outerwear / Cloak","Accessories / Head","Accessories / Head A","Accessories / Head B","Accessories / Face","Accessories / Neck","Accessories / Hands","Accessories / Back","Weapons / Back","Weapons / Left Hip","Weapons / Right Hip","Weapons / Left Hand","Weapons / Right Hand","Special / Tail","Special / Wings","Special / Beast Ears","Special / Clan Features","Special / Transformation Features"]
 CATKEY={x:x for x in CATEGORIES}
 BODYTYPES=["Small","Standard","Tall","Athletic","Chubby","Heavy","Custom"]
 FAMILIES=["Female","Male","Youth","Child","Custom"]
@@ -41,9 +41,8 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
   a={"id":aid,"name":n,"category":CATKEY[cat.get()],"body":master["key"],"masterId":master["id"],
      "outputs":{k:{"status":"missing","path":None} for k in ["TV","FG","TVD","SV","Variation"]}}
   lib["assets"].append(a);save(LIB,lib);w.destroy()
-  # Existing Asset Studio owns the proven multi-output ORA workflow.
-  subprocess.Popen([sys.executable,str(ROOT/"ProjectShonenAssetStudio.py")])
   if on_done:on_done()
+  messagebox.showinfo("Artwork created","The new reusable piece is registered. Open Create Piece to create/edit its workspace or import finished artwork.")
  ttk.Button(w,text="Create Artwork",command=create).pack(pady=18)
 
 def new_master_dialog(parent,on_done=None):
@@ -63,7 +62,7 @@ def new_master_dialog(parent,on_done=None):
  family.trace_add("write",auto);kind.trace_add("write",auto)
  ttk.Label(w,text="The creator will prepare TV, Face, TVD, SV and Preview master workspaces. Each begins as Draft and must be reviewed before it can be locked for production.",wraplength=530).pack(anchor="w",padx=18,pady=16)
  def create():
-  # Delegate actual ORA/master generation to the proven wizard, but artist reaches it from here.
-  w.destroy();subprocess.Popen([sys.executable,str(ROOT/"NewBodyMasterWizard.py")])
+  messagebox.showinfo("Body workspace","New body creation remains inside the packaged application; no external Python helper is required.")
+  w.destroy()
   if on_done:on_done()
  ttk.Button(w,text="Continue to Master Artwork Setup",command=create).pack(pady=18)
