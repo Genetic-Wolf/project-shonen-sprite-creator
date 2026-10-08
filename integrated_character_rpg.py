@@ -138,6 +138,9 @@ class CharacterBuilder(ttk.Frame):
   if hasattr(self,"baseinfo"):
    m=self.currentmaster();self.baseinfo.set("Base Body: "+(m.get("name","None") if m else "None")+" — no cosmetics selected")
   if hasattr(self,"tree") and hasattr(self,"search"): self.refresh()
+  if self.active_group:
+   fields=next((fs for g,fs in CUSTOMIZATION_FIELDS if g==self.active_group),[])
+   if fields:self.show_fields(self.active_group,fields)
  def compatible(self,a,m):return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
