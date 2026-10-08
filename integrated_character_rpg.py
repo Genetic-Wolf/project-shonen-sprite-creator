@@ -29,7 +29,7 @@ def load(p,d):
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 class CharacterBuilder(ttk.Frame):
  def __init__(self,parent):
-  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.bodyphotos=[];self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
+  super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.selected=[];self.photo=None;self.thumbphoto=None;self.cardphotos=[];self.bodyphotos=[];self.thumbcache={};self.active_group=None;self.preview_out=tk.StringVar(value="TV");self.category=tk.StringVar(value="All");self.build()
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
@@ -45,9 +45,10 @@ class CharacterBuilder(ttk.Frame):
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True,pady=6)
   left=ttk.Frame(pan);mid=ttk.Frame(pan);right=ttk.Frame(pan);pan.add(left,weight=3);pan.add(mid,weight=2);pan.add(right,weight=3)
   ttk.Label(left,text="Customization",font=("TkDefaultFont",11,"bold")).pack(anchor="w")
-  slots=ttk.Frame(left);slots.pack(fill="x",pady=(2,6))
+  slots=ttk.Frame(left);slots.pack(fill="x",pady=(2,3))
   for group,fields in CUSTOMIZATION_FIELDS:
-   ttk.Button(slots,text=group,command=lambda fs=fields:self.show_fields(fs)).pack(side="left",padx=1,pady=1)
+   ttk.Button(slots,text=group,command=lambda g=group,fs=fields:self.show_fields(g,fs)).pack(side="left",padx=1,pady=1)
+  self.subslots=ttk.Frame(left);self.subslots.pack(fill="x",pady=(0,4))
   self.field_hint=tk.StringVar(value="All customization fields are available. Choose a group above or use Category.")
   ttk.Label(left,textvariable=self.field_hint,wraplength=430).pack(anchor="w",pady=(0,3))
   self.slotcounts=tk.StringVar(value="");ttk.Label(left,textvariable=self.slotcounts,wraplength=430).pack(anchor="w",pady=(0,4))
@@ -96,23 +97,26 @@ class CharacterBuilder(ttk.Frame):
    if rel:
     p=app_paths.resolve(rel)
     if p.exists():
-     try:
-      im=Image.open(p).convert("RGBA")
-      if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
-      im.thumbnail((64,64),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.bodyphotos.append(ph)
+     try:ph=self.thumbnail(p,64);self.bodyphotos.append(ph)
      except Exception:ph=None
    label=("✓ " if selected else "")+m.get("name","Body")
    ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=18).pack()
  def choose_body(self,name):
   if name==self.master_name.get():return
   self.master_name.set(name);self.on_master_changed();self.render_bodies()
- def show_fields(self,fields):
-  w=tk.Toplevel(self);w.title("Choose Customization Slot");w.transient(self.winfo_toplevel())
-  ttk.Label(w,text="Choose exactly what you want to customize",font=("TkDefaultFont",11,"bold")).pack(anchor="w",padx=12,pady=(12,6))
-  f=ttk.Frame(w);f.pack(fill="both",expand=True,padx=10,pady=(0,10))
-  for n,field in enumerate(fields):
-   ttk.Button(f,text=field,command=lambda x=field:(self.category.set(x),self.field_hint.set("Selected slot: "+x),w.destroy(),self.refresh())).grid(row=n//2,column=n%2,sticky="ew",padx=3,pady=3)
-  f.columnconfigure(0,weight=1);f.columnconfigure(1,weight=1)
+ def show_fields(self,group,fields):
+  self.active_group=group
+  for w in self.subslots.winfo_children():w.destroy()
+  counts={};m=self.currentmaster()
+  if m:
+   for a in self.lib.get("assets",[]):
+    if self.compatible(a,m):counts[a.get("category","Other")]=counts.get(a.get("category","Other"),0)+1
+  for field in fields:
+   short=field.split(" / ",1)[-1]
+   ttk.Button(self.subslots,text=f"{short} ({counts.get(field,0)})",command=lambda x=field:self.choose_slot(x)).pack(side="left",padx=1,pady=1)
+  self.field_hint.set(group+" slots are shown above. Empty slots remain available for new artwork.")
+ def choose_slot(self,field):
+  self.category.set(field);self.field_hint.set("Selected slot: "+field);self.refresh()
  def new_piece(self):
   m=self.currentmaster()
   if not m:return
@@ -153,6 +157,14 @@ class CharacterBuilder(ttk.Frame):
   else:self.slotcounts.set(f"{sum(counts.values())} compatible pieces across {len(counts)} populated slots")
   self.render_gallery()
   self.preview()
+ def thumbnail(self,p,size):
+  key=(str(p),size)
+  ph=self.thumbcache.get(key)
+  if ph:return ph
+  im=Image.open(p).convert("RGBA")
+  if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
+  im.thumbnail((size,size),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.thumbcache[key]=ph
+  return ph
  def render_gallery(self):
   if not hasattr(self,"galleryinner"):return
   for w in self.galleryinner.winfo_children():w.destroy()
@@ -171,10 +183,7 @@ class CharacterBuilder(ttk.Frame):
     if rel:
      p=app_paths.resolve(rel)
      if p.exists():
-      try:
-       im=Image.open(p).convert("RGBA")
-       if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
-       im.thumbnail((72,72),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.cardphotos.append(ph)
+      try:ph=self.thumbnail(p,72);self.cardphotos.append(ph)
       except Exception:ph=None
     equipped=i in self.selected
     card(("✓ " if equipped else "")+a.get("name",a.get("id","Piece")),lambda x=i:self.select_index(x),ph)
