@@ -238,7 +238,7 @@ class CharacterBuilder(ttk.Frame):
     entries=[(x.get("path"),int(x.get("nativeLayer",0) or 0)) for x in layers]
    else:
     entries=[(p,0) for p in (o.get("paths") or ([o.get("path")] if o.get("path") else []))]
-   native=a.get("nativeCategory","")
+   native=re.sub(r"[12]$","",a.get("nativeCategory",""))
    for seq,(rel,nlayer) in enumerate(entries):
     q=app_paths.resolve(rel)
     if not q.exists():missing.append(f'{a["name"]} ({out} file missing)');continue
