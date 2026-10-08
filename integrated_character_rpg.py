@@ -222,7 +222,7 @@ class CharacterBuilder(ttk.Frame):
    messagebox.showinfo("No palette channels","This component has no preserved RPG Maker color-mask channels.");return
   w=tk.Toplevel(self);w.title("Non-destructive Palette — "+a.get("name",aid));w.transient(self.winfo_toplevel());w.grab_set()
   ttk.Label(w,text="Palette intent",font=("TkDefaultFont",12,"bold")).pack(anchor="w",padx=14,pady=(14,4))
-  ttk.Label(w,text="These choices are saved with the character and never modify the source artwork. Live recoloring will activate after the native MZ gradient mapping is fully validated.",wraplength=560).pack(anchor="w",padx=14,pady=(0,10))
+  ttk.Label(w,text="These choices are saved with the character and never modify the source artwork. Primary recoloring is applied non-destructively in live preview/export when this component has a compatible imported MZ color mask. Secondary/Trim/Accent are preserved for the expanded channel mapper.",wraplength=560).pack(anchor="w",padx=14,pady=(0,10))
   ttk.Label(w,text="Mask data available for: "+", ".join(maskouts)).pack(anchor="w",padx=14,pady=(0,8))
   current=self.palette.get(aid,{})
   vars={}
@@ -246,6 +246,36 @@ class CharacterBuilder(ttk.Frame):
   s=self.sel.curselection()
   if not s:return
   self.selected.pop(s[0]);self.renderstack();self.preview()
+ def _palette_rgb(self,name):
+  colors={"Black":(35,35,40),"Brown":(115,72,48),"Red":(190,55,55),"Orange":(220,115,45),"Yellow":(225,190,60),"Green":(65,155,85),"Blue":(65,105,190),"Purple":(125,75,170),"Pink":(215,110,155),"White":(225,225,220),"Gray":(125,130,135)}
+  return colors.get(name)
+ def _tint_masked_layer(self,im,mask,choice):
+  target=self._palette_rgb(choice)
+  if not target or mask.size!=im.size:return im
+  src=im.convert("RGBA");mk=mask.convert("RGBA");sp=src.load();mp=mk.load();tr,tg,tb=target
+  for y in range(src.height):
+   for x in range(src.width):
+    mr,mg,mb,ma=mp[x,y]
+    if ma==0:continue
+    r,g,b,a=sp[x,y]
+    if a==0:continue
+    strength=max(mr,mg,mb)/255.0
+    if strength<=0:continue
+    lum=(r*0.299+g*0.587+b*0.114)/255.0
+    nr=int(tr*lum);ng=int(tg*lum);nb=int(tb*lum)
+    sp[x,y]=(int(r*(1-strength)+nr*strength),int(g*(1-strength)+ng*strength),int(b*(1-strength)+nb*strength),a)
+  return src
+ def _apply_saved_palette(self,a,o,im,nlayer,out):
+  choice=self.palette.get(a.get("id"),{}).get("Primary")
+  if not choice:return im
+  masks=o.get("masks") or []
+  candidate=next((x for x in masks if int(x.get("nativeLayer",0) or 0)==nlayer),None)
+  if not candidate and len(masks)==1:candidate=masks[0]
+  if not candidate:return im
+  p=app_paths.resolve(candidate.get("path",""))
+  if not p.exists():return im
+  try:return self._tint_masked_layer(im,Image.open(p),choice)
+  except Exception:return im
  def composite(self,out="TV"):
   m=self.currentmaster()
   if not m:return None,[]
@@ -269,6 +299,7 @@ class CharacterBuilder(ttk.Frame):
     try: im=Image.open(q).convert("RGBA")
     except Exception:missing.append(f'{a["name"]} ({out} unreadable)');continue
     if im.size!=body.size:missing.append(f'{a["name"]} ({out} wrong size)');continue
+    im=self._apply_saved_palette(a,o,im,nlayer,out)
     # MZ split components conventionally use layer 1 behind the body and layer 2 in front.
     # For single-layer rear categories, place them behind; ordinary single-layer pieces stay in front.
     behind=(nlayer==1) or (nlayer==0 and native in back_categories)
