@@ -119,7 +119,7 @@ def _register_existing(dest,valid=0,invalid=0):
  for (sex,cat,pid),reps in sorted(groups.items(),key=lambda x:(x[0][0],x[0][1],x[0][2])):
   aid=f"MZ-{sex.upper()}-{cat.upper()}-{pid:03d}";outputs={}
   for rep,entries in reps.items():
-   paths=[x[0] for x in sorted(entries,key=lambda x:(x[1],x[2]))];outputs[rep]={"status":"complete","paths":paths,"path":paths[0]}
+   ordered=sorted(entries,key=lambda x:(x[1],x[2]));paths=[x[0] for x in ordered];layers=[{"path":x[0],"nativeLayer":x[1],"filename":x[2]} for x in ordered];outputs[rep]={"status":"complete","paths":paths,"layers":layers,"path":paths[0]}
   record={"id":aid,"name":f"MZ {cat} {pid:02d}","category":CATEGORY_MAP.get(cat,cat),"body":f"MZ_{sex}_Standard","masterId":f"PS-MZ-{sex.upper()}-STANDARD","source":"RPG Maker MZ (user-owned local import)","nativeCategory":cat,"nativePartId":pid,"outputs":outputs}
   if aid in byid and str(byid[aid].get("source","")).startswith("RPG Maker MZ"):
    byid[aid].update(record);updated+=1
