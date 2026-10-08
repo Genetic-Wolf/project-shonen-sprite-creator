@@ -207,7 +207,7 @@ class CharacterBuilder(ttk.Frame):
   i=int(s[0]);a=self.lib["assets"][i];cat=a.get("category","Other")
   # One default piece per exact category; advanced layering can still contain distinct categories.
   self.selected=[x for x in self.selected if self.lib["assets"][x].get("category","Other")!=cat]
-  self.selected.append(i);self.renderstack();self.preview()
+  self.selected.append(i);self.renderstack();self.render_gallery();self.preview()
  def renderstack(self):
   self.sel.delete(0,"end")
   for i in self.selected:
@@ -234,7 +234,7 @@ class CharacterBuilder(ttk.Frame):
    vals={k:v.get() for k,v in vars.items() if v.get()!="Default"}
    if vals:self.palette[aid]=vals
    else:self.palette.pop(aid,None)
-   w.destroy();self.renderstack()
+   w.destroy();self.renderstack();self.preview()
   ttk.Button(w,text="Save Palette Choices",command=apply).pack(pady=14)
  def move(self,d):
   s=self.sel.curselection()
@@ -245,7 +245,7 @@ class CharacterBuilder(ttk.Frame):
  def remove(self):
   s=self.sel.curselection()
   if not s:return
-  self.selected.pop(s[0]);self.renderstack();self.preview()
+  self.selected.pop(s[0]);self.renderstack();self.render_gallery();self.preview()
  def _palette_rgb(self,name):
   colors={"Black":(35,35,40),"Brown":(115,72,48),"Red":(190,55,55),"Orange":(220,115,45),"Yellow":(225,190,60),"Green":(65,155,85),"Blue":(65,105,190),"Purple":(125,75,170),"Pink":(215,110,155),"White":(225,225,220),"Gray":(125,130,135)}
   return colors.get(name)
