@@ -105,6 +105,8 @@ class PieceEditor(ttk.Frame):
   blank=Image.new("RGBA",size,(0,0,0,0));layers.append((f"02_DRAW_{out}_HERE",blank))
   path=d/f'EDIT_{a["name"].replace(" ","_")}_{out}.ora';ora(path,layers,size)
   (d/"READ_ME_FIRST.txt").write_text("Draw "+a["name"]+" on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at "+str(size[0])+"x"+str(size[1])+", then return to the creator and click Import PNG.",encoding="utf-8")
+  manifest={"schemaVersion":1,"assetId":a["id"],"assetName":a["name"],"category":a.get("category","Other"),"body":a.get("body"),"masterId":a.get("masterId"),"output":out,"expectedSize":list(size),"destination":"assets/outputs/"+out}
+  (d/"project_shonen_artwork.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
   try:os.startfile(path)
   except:pass
  def importpng(self,out):
