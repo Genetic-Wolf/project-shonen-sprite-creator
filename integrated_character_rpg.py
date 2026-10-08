@@ -4,7 +4,8 @@ from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk
 import json,shutil,time,re
-import asset_package\nimport embedded_workflows
+import asset_package
+import embedded_workflows
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
