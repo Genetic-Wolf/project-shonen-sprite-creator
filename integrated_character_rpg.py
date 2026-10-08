@@ -120,7 +120,7 @@ class CharacterBuilder(ttk.Frame):
  def new_piece(self):
   m=self.currentmaster()
   if not m:return
-  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library)
+  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library,preferred_body=m.get("name"),preferred_category=self.category.get())
  def reload_library(self):
   self.lib=load(LIB,{"assets":[]})
   self.refresh()
