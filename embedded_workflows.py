@@ -16,11 +16,11 @@ def load(p,d):
  except:return d
 def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 
-def new_piece_dialog(parent,on_done=None):
+def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=None):
  data=load(REG,{"masters":[]});lib=load(LIB,{"assets":[]})
  w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("760x620");w.transient(parent);w.grab_set()
- name=tk.StringVar();cat=tk.StringVar(value="Hair / Front")
- masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=masters[0] if masters else "")
+ name=tk.StringVar();cat=tk.StringVar(value=preferred_category if preferred_category in CATEGORIES else "Hair / Front")
+ masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=preferred_body if preferred_body in masters else (masters[0] if masters else ""))
  ttk.Label(w,text="Create Artwork",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
  ttk.Label(w,text="1. Choose the body this artwork fits.  2. Choose what you are drawing.  3. Give it a normal name. The program handles IDs and files.",wraplength=700).pack(anchor="w",padx=18,pady=(0,12))
  f=ttk.Frame(w);f.pack(fill="x",padx=18)
