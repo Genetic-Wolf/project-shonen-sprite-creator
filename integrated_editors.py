@@ -209,7 +209,8 @@ class MasterEditor(ttk.Frame):
   for c,t in [("status","Status"),("locked","Locked"),("canvas","Canvas")]:self.tree.heading(c,text=t)
   self.tree.pack(fill="both",expand=True,pady=8)
   b=ttk.Frame(r);b.pack(fill="x")
-  ttk.Button(b,text="Replace Master PNG",command=self.replace).pack(side="left")
+  ttk.Button(b,text="Edit in Clip Studio Paint",command=self.workspace).pack(side="left")
+  ttk.Button(b,text="Import Master PNG",command=self.replace).pack(side="left",padx=5)
   ttk.Button(b,text="Approve + Lock",command=self.approve).pack(side="left",padx=5)
   ttk.Button(b,text="Unlock for Revision",command=self.unlock).pack(side="left")
  def master(self):return self.reg["masters"][self.cur] if self.cur is not None else None
@@ -221,6 +222,36 @@ class MasterEditor(ttk.Frame):
   for k,o in m["outputs"].items():self.tree.insert("","end",iid=k,text=OUTS.get(k,(k,None))[0],values=(o.get("status"),"YES" if o.get("locked") else "NO",f'{o["size"][0]}×{o["size"][1]}'))
  def chosen(self):
   s=self.tree.selection();return s[0] if s else None
+ def workspace(self):
+  m=self.master();k=self.chosen()
+  if not m or not k:messagebox.showinfo("Choose an output","Select an output first.");return
+  o=m["outputs"][k]
+  if o.get("locked"):messagebox.showerror("Locked master","Unlock this master output before editing it.");return
+  size=tuple(o["size"]);d=ROOT/"artist_workspace"/"Bodies"/m["id"]/k;d.mkdir(parents=True,exist_ok=True)
+  layers=[("00_GUIDES_DO_NOT_EXPORT",guide(size,k))]
+  rm=next((x for x in self.reg["masters"] if x.get("id")==m.get("referenceMasterId")),None)
+  ro=rm.get("outputs",{}).get(k,{}) if rm else {};rp=app_paths.resolve(ro.get("base","")) if ro.get("base") else None
+  if rp and rp.exists():
+   try:
+    ref=Image.open(rp).convert("RGBA")
+    if ref.size==size:layers.append(("01_ALIGNMENT_REFERENCE_DO_NOT_EXPORT",ref))
+   except Exception:pass
+  layers.append((f"02_DRAW_{k}_BODY_HERE",Image.new("RGBA",size,(0,0,0,0))))
+  path=d/f'EDIT_{m["key"]}_{k}.ora'
+  if path.exists() and not messagebox.askyesno("Workspace already exists","Rebuild this body workspace? Choose No to open your existing artwork without changing it."):
+   self.open_csp(path);return
+  ora(path,layers,size)
+  (d/"project_shonen_body.json").write_text(json.dumps({"schemaVersion":1,"masterId":m["id"],"output":k,"expectedSize":list(size),"destination":o["base"]},indent=2),encoding="utf-8")
+  self.open_csp(path)
+ def open_csp(self,path):
+  cfg=load(SET,{});exe=Path(cfg.get("clipStudio","")) if cfg.get("clipStudio") else None
+  if not exe or not exe.exists():
+   if not messagebox.askyesno("Connect Clip Studio Paint","Choose the Clip Studio Paint program now?"):return
+   chosen=filedialog.askopenfilename(title="Choose Clip Studio Paint",filetypes=[("Windows program","*.exe"),("All files","*.*")])
+   if not chosen:return
+   exe=Path(chosen);cfg["clipStudio"]=str(exe);save(SET,cfg)
+  try:subprocess.Popen([str(exe),str(path)])
+  except Exception as e:messagebox.showerror("Could not open Clip Studio Paint",str(e))
  def replace(self):
   m=self.master();k=self.chosen()
   if not m or not k:return
