@@ -18,11 +18,17 @@ def _save_atomic(path,data):
     tmp.replace(path)
 
 def _manifest_for(p):
+    # Use only the nearest valid Creator workspace manifest. A malformed nearby
+    # manifest must not silently fall through to unrelated metadata higher up.
     for parent in [p.parent]+list(p.parents)[:4]:
         mp=parent/"project_shonen_artwork.json"
-        if mp.exists():
-            try:return json.loads(mp.read_text(encoding="utf-8")),mp
-            except Exception:return None,mp
+        if not mp.exists():continue
+        try:
+            data=json.loads(mp.read_text(encoding="utf-8"))
+        except Exception:return None,mp
+        required=("assetId","output","expectedSize","destination")
+        if not isinstance(data,dict) or any(k not in data for k in required):return None,mp
+        return data,mp
     return None,None
 
 def _master(asset,reg):
@@ -40,8 +46,12 @@ def import_finished_pngs(paths):
             im=Image.open(p).convert("RGBA")
         except Exception as e:
             results.append({"file":p.name,"ok":False,"reason":"Unreadable PNG: "+str(e)});continue
-        if not im.getbbox():
+        alpha=im.getchannel("A")
+        extrema=alpha.getextrema()
+        if extrema==(0,0):
             results.append({"file":p.name,"ok":False,"reason":"Artwork is completely transparent."});continue
+        if extrema==(255,255):
+            results.append({"file":p.name,"ok":False,"reason":"Reusable component artwork must preserve transparency; this PNG is fully opaque."});continue
         manifest,mp=_manifest_for(p)
         if not manifest:
             results.append({"file":p.name,"ok":False,"reason":"No Project Shonen artwork manifest was found. Import this file from its Creator workspace, or use Create Piece for manual routing."});continue
@@ -49,6 +59,9 @@ def import_finished_pngs(paths):
         if not a:
             results.append({"file":p.name,"ok":False,"reason":"Manifest asset is not registered: "+str(aid)});continue
         out=manifest.get("output")
+        expected_destination="assets/outputs/"+str(out)
+        if manifest.get("destination")!=expected_destination:
+            results.append({"file":p.name,"ok":False,"reason":"Workspace destination metadata is invalid or no longer current."});continue
         if out not in OUTS:
             results.append({"file":p.name,"ok":False,"reason":"Manifest output is unsupported: "+str(out)});continue
         expected=tuple(manifest.get("expectedSize",[]))
