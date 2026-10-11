@@ -7,6 +7,7 @@ import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 import production_pipeline
 import body_master
 import piece_lifecycle
+import production_dashboard
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -41,12 +42,17 @@ def guide(size,out):
  return im
 
 class LibraryGallery(ttk.Frame):
- def __init__(self,parent,kind="pieces"):
-  super().__init__(parent);self.kind=kind;self.photos=[];self.build()
+ def __init__(self,parent,kind="pieces",on_continue=None):
+  super().__init__(parent);self.kind=kind;self.on_continue=on_continue;self.photos=[];self.build()
  def build(self):
   data=load(LIB,{"assets":[]}).get("assets",[]) if self.kind=="pieces" else load(REG,{"masters":[]}).get("masters",[])
+  masters=load(REG,{"masters":[]}).get("masters",[])
   if not data:
    ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return
+  if self.kind=="pieces":
+   q=production_dashboard.queues(data,masters);summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6))
+   for name in ("Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
+    ttk.Label(summary,text=name+": "+str(len(q[name])),padding=(7,4)).pack(side="left")
   cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
   for n,item in enumerate(data):
    card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew")
@@ -57,12 +63,18 @@ class LibraryGallery(ttk.Frame):
     o=item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("base","")) if o.get("base") else None
    if p and p.exists():
     try:
-     im=Image.open(p).convert("RGBA");
+     im=Image.open(p).convert("RGBA")
      if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
      im.thumbnail((96,96),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.photos.append(ph);ttk.Label(card,image=ph).pack()
     except Exception:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
    else:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
    ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=150).pack()
+   if self.kind=="pieces":
+    info=production_dashboard.classify(item,masters)
+    ttk.Label(card,text=info["state"],wraplength=150).pack()
+    if info["missing"] or info["attention"]:ttk.Label(card,text="Missing: "+str(info["missing"])+"   Attention: "+str(info["attention"])).pack()
+    if self.on_continue and info["action"]!="Reference":
+     ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
 
 class PieceEditor(ttk.Frame):
  def __init__(self,parent,select_asset_id=None,auto_continue=False):
