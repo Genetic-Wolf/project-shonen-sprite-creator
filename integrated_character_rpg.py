@@ -3,7 +3,7 @@ from tkinter import ttk,messagebox,filedialog
 from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk
-import json,shutil,time,re
+import json,shutil,time,re,subprocess
 import asset_package
 import embedded_workflows
 ROOT=app_paths.DATA_ROOT
