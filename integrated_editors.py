@@ -5,6 +5,7 @@ import app_paths
 from PIL import Image,ImageTk,ImageDraw
 import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 import production_pipeline
+import body_master
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -27,9 +28,11 @@ def ora(path,layers,size):
  shutil.rmtree(t)
 def guide(size,out):
  im=Image.new("RGBA",size,(0,0,0,0));d=ImageDraw.Draw(im);d.rectangle((0,0,size[0]-1,size[1]-1),outline=(255,210,0,180))
- if out in ("TV","TVD"):
+ if out=="TV":
   for x in (48,96):d.line((x,0,x,192),fill=(0,180,255,120))
   for y in (48,96,144):d.line((0,y,144,y),fill=(0,180,255,120))
+ elif out=="TVD":
+  for x in (48,96):d.line((x,0,x,48),fill=(0,180,255,120))
  elif out=="SV":
   for x in range(64,576,64):d.line((x,0,x,384),fill=(0,180,255,100))
   for y in range(64,384,64):d.line((0,y,576,y),fill=(0,180,255,100))
@@ -318,6 +321,7 @@ class MasterEditor(ttk.Frame):
   m=self.master();k=self.chosen()
   if not m or not k:messagebox.showinfo("Choose an output","Select an output first.");return
   o=m["outputs"][k]
+  if body_master.is_reference(m):messagebox.showerror("Read-only reference","Imported RPG Maker MZ body masters are local alignment references and cannot be edited.");return
   if o.get("locked"):messagebox.showerror("Locked master","Unlock this master output before editing it.");return
   size=tuple(o["size"]);d=ROOT/"artist_workspace"/"Bodies"/m["id"]/k;d.mkdir(parents=True,exist_ok=True)
   layers=[("00_GUIDES_DO_NOT_EXPORT",guide(size,k))]
@@ -348,10 +352,12 @@ class MasterEditor(ttk.Frame):
   m=self.master();k=self.chosen()
   if not m or not k:return
   o=m["outputs"][k]
+  if body_master.is_reference(m):messagebox.showerror("Read-only reference","Imported RPG Maker MZ body masters cannot be replaced.");return
   if o.get("locked"):messagebox.showerror("Locked","Unlock this master output before replacing it.");return
   p=filedialog.askopenfilename(filetypes=[("PNG","*.png")])
   if not p:return
-  im=Image.open(p).convert("RGBA")
+  try:im=Image.open(p).convert("RGBA")
+  except Exception as e:messagebox.showerror("Unreadable master artwork",str(e));return
   if list(im.size)!=o["size"]:messagebox.showerror("Wrong canvas",f'Expected {o["size"][0]}×{o["size"][1]}.');return
   alpha=im.getchannel("A").getextrema()
   if alpha==(0,0):messagebox.showerror("Empty master","The body master PNG is completely transparent.");return
@@ -361,6 +367,8 @@ class MasterEditor(ttk.Frame):
   m=self.master();k=self.chosen()
   if not m or not k:return
   o=m["outputs"][k]
+  ok,reason=body_master.validate_output(m,k)
+  if not ok:messagebox.showerror("Cannot approve master",reason);return
   if not messagebox.askyesno("Approve canonical master","Lock this artwork as the canonical geometry for compatible components?"):return
   o["status"]="approved";o["locked"]=True
   if all(x.get("status")=="approved" and x.get("locked") for x in m["outputs"].values()): m["status"]="production"
@@ -368,5 +376,6 @@ class MasterEditor(ttk.Frame):
  def unlock(self):
   m=self.master();k=self.chosen()
   if not m or not k:return
+  if body_master.is_reference(m):messagebox.showerror("Read-only reference","Imported RPG Maker MZ body masters cannot be revised.");return
   if not messagebox.askyesno("Unlock master","Changing canonical geometry can misalign existing components. Continue?"):return
   o=m["outputs"][k];o["locked"]=False;o["status"]="revision";m["status"]="revision";save(REG,self.reg);self.select()
