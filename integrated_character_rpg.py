@@ -6,6 +6,7 @@ from PIL import Image,ImageTk
 import json,shutil,time,re,subprocess
 import asset_package
 import embedded_workflows
+import body_master
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -33,7 +34,7 @@ class CharacterBuilder(ttk.Frame):
  def build(self):
   top=ttk.Frame(self);top.pack(fill="x")
   ttk.Label(top,text="Character name").pack(side="left");self.name=tk.StringVar(value="New Character");ttk.Entry(top,textvariable=self.name,width=24).pack(side="left",padx=6)
-  ordered=sorted(self.reg["masters"],key=lambda m:(0 if m.get("status")=="reference" else 1,m.get("name","")));masters=[m["name"] for m in ordered];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
+  ordered=sorted([m for m in self.reg["masters"] if body_master.selectable(m)],key=lambda m:(0 if m.get("status")=="reference" else 1,m.get("name","")));masters=[m["name"] for m in ordered];self.master_name=tk.StringVar(value=masters[0] if masters else "");ttk.Label(top,text="Body master").pack(side="left",padx=(12,0))
   cb=ttk.Combobox(top,textvariable=self.master_name,values=masters,state="readonly",width=22);cb.pack(side="left",padx=6);cb.bind("<<ComboboxSelected>>",self.on_master_changed)
   self.search=tk.StringVar();ttk.Label(top,text="Search").pack(side="left",padx=(12,0));e=ttk.Entry(top,textvariable=self.search,width=18);e.pack(side="left",padx=5);self.search.trace_add("write",lambda *_:self.refresh())
   ttk.Label(top,text="Category").pack(side="left",padx=(10,0));cats=["All"]+list(dict.fromkeys([x for _,fs in CUSTOMIZATION_FIELDS for x in fs]+[a.get("category","Other") for a in self.lib["assets"]]));cc=ttk.Combobox(top,textvariable=self.category,values=cats,state="readonly",width=16);cc.pack(side="left",padx=4);cc.bind("<<ComboboxSelected>>",lambda e:self.refresh())
@@ -91,7 +92,7 @@ class CharacterBuilder(ttk.Frame):
   if not hasattr(self,"bodyinner"):return
   for w in self.bodyinner.winfo_children():w.destroy()
   self.bodyphotos=[]
-  for m in sorted(self.reg.get("masters",[]),key=lambda x:(0 if x.get("status")=="reference" else 1,x.get("name",""))):
+  for m in sorted([x for x in self.reg.get("masters",[]) if body_master.selectable(x)],key=lambda x:(0 if x.get("status")=="reference" else 1,x.get("name",""))):
    selected=m.get("name")==self.master_name.get();f=ttk.Frame(self.bodyinner,padding=3,relief="sunken" if selected else "groove");f.pack(side="left",padx=3,pady=2)
    ph=None;o=m.get("outputs",{}).get("TV",{});rel=o.get("base")
    if rel:
