@@ -130,7 +130,15 @@ class CharacterBuilder(ttk.Frame):
   if preferred=="All" and self.active_group:
    fields=next((fs for g,fs in CUSTOMIZATION_FIELDS if g==self.active_group),[])
    if len(fields)==1:preferred=fields[0]
-  embedded_workflows.new_piece_dialog(self,on_done=self.reload_library,preferred_body=m.get("name"),preferred_category=preferred)
+  def created(asset=None):
+   self.reload_library()
+   if asset:
+    idx=next((i for i,a in enumerate(self.lib.get("assets",[])) if a.get("id")==asset.get("id")),None)
+    if idx is not None:
+     self.category.set(asset.get("category","All"));self.refresh()
+     if str(idx) in self.tree.get_children():
+      self.tree.selection_set(str(idx));self.tree.see(str(idx));self.piece_preview()
+  embedded_workflows.new_piece_dialog(self,on_done=created,preferred_body=m.get("name"),preferred_category=preferred)
  def reload_library(self):
   self.lib=load(LIB,{"assets":[]})
   self.refresh()
