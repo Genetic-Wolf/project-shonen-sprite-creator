@@ -6,6 +6,7 @@ from PIL import Image,ImageTk,ImageDraw
 import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 import production_pipeline
 import body_master
+import piece_lifecycle
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -77,6 +78,8 @@ class PieceEditor(ttk.Frame):
   ttk.Button(actions,text="Compatibility Matrix",command=self.compatibility_matrix).pack(side="left",padx=5)
   ttk.Button(actions,text="Production Dashboard",command=self.production_dashboard).pack(side="left",padx=5)
   ttk.Button(actions,text="Continue Artwork",command=self.continue_artwork).pack(side="left",padx=5)
+  ttk.Button(actions,text="Approve Piece",command=self.approve_piece).pack(side="left",padx=5)
+  ttk.Button(actions,text="Reopen",command=self.reopen_piece).pack(side="left",padx=5)
   ttk.Label(actions,text="Automatically validates and routes PNG artwork to the selected piece.",wraplength=430).pack(side="left",padx=8)
   self.cards=ttk.Frame(r);self.cards.pack(fill="x",pady=8);self.status={}
   for k,(label,size) in OUTS.items():
@@ -96,7 +99,7 @@ class PieceEditor(ttk.Frame):
   for k in OUTS:
    o=a.get("outputs",{}).get(k,{})
    self.status[k].set("✓ COMPLETE" if o.get("status")=="complete" and o.get("path") else "— MISSING")
-  self.production.set("Production: "+production_pipeline.evaluate(a,self.reg.get("masters",[]))["state"])
+  self.production.set("Lifecycle: "+piece_lifecycle.lifecycle(a,self.reg.get("masters",[])))
  def master(self,a):
   return next((m for m in self.reg["masters"] if m.get("id")==a.get("masterId") or m.get("key")==a.get("body")),None)
  def workspace(self,out):
@@ -134,6 +137,18 @@ class PieceEditor(ttk.Frame):
    exe=Path(chosen);cfg["clipStudio"]=str(exe);save(SET,cfg)
   try:subprocess.Popen([str(exe),str(path)])
   except Exception as e:messagebox.showerror("Could not open Clip Studio Paint",str(e))
+ def approve_piece(self):
+  a=self.asset()
+  if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
+  ok,report=piece_lifecycle.approve(a,self.reg.get("masters",[]))
+  if not ok:
+   messagebox.showerror("Piece is not ready","This piece still has "+str(len(report["blockers"]))+" unresolved artwork requirement(s). Use Continue Artwork to finish them.");return
+  save(LIB,self.lib);self.select();messagebox.showinfo("Piece approved",a.get("name","Piece")+" is now Production Ready.")
+ def reopen_piece(self):
+  a=self.asset()
+  if not a:return
+  if not messagebox.askyesno("Reopen piece","Return this piece to revision so its artwork can be changed?"):return
+  piece_lifecycle.reopen(a);save(LIB,self.lib);self.select()
  def production_dashboard(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
