@@ -246,7 +246,7 @@ class CharacterBuilder(ttk.Frame):
   c=a.get("compatibility") or {};scope=c.get("scope","Exact Body");fit=(" • "+scope) if scope else ""
   if c.get("bust") not in (None,"Any","Not Applicable"):fit+=" • "+c.get("bust")+" bust"
   matrix=c.get("matrix") or {};choice=matrix.get(self.currentmaster().get("id")) if self.currentmaster() else None
-  if choice:fit+=" • this body: "+choice"
+  if choice:fit+=" • this body: "+choice
   self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+fit+" • outputs: "+(", ".join(outs) if outs else "none"))
  def add(self,e=None):
   s=self.tree.selection()
