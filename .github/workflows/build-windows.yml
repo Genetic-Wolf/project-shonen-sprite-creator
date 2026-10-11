@@ -21,7 +21,9 @@ jobs:
         run: python -c "import pathlib,py_compile; [py_compile.compile(str(p),doraise=True) for p in pathlib.Path('.').glob('*.py')]"
       - name: Validate JSON
         run: python -c "import pathlib,json; [json.loads(p.read_text(encoding='utf-8')) for p in pathlib.Path('.').glob('*.json')]"
-      - name: MZ importer integration regression\n        run: python test_mz_import_integration.py\n      - name: Source self-test
+      - name: MZ importer integration regression
+        run: python test_mz_import_integration.py
+      - name: Source self-test
         env:
           PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenSourceTest
         run: python ProjectShonenSpriteCreator.py --self-test
