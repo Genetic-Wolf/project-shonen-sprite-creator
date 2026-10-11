@@ -18,9 +18,9 @@ def save(p,d):json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 
 def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=None):
  data=load(REG,{"masters":[]});lib=load(LIB,{"assets":[]})
- w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("760x620");w.transient(parent);w.grab_set()
+ w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("760x700");w.transient(parent);w.grab_set()
  name=tk.StringVar();cat=tk.StringVar(value=preferred_category if preferred_category in CATEGORIES else "Hair / Front")
- masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=preferred_body if preferred_body in masters else (masters[0] if masters else ""))
+ masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=preferred_body if preferred_body in masters else (masters[0] if masters else ""))\n scope=tk.StringVar(value="Body Specific");bust=tk.StringVar(value="Any")
  ttk.Label(w,text="Create Artwork",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
  ttk.Label(w,text="1. Choose the body this artwork fits.  2. Choose what you are drawing.  3. Give it a normal name. The program handles IDs and files.",wraplength=700).pack(anchor="w",padx=18,pady=(0,12))
  f=ttk.Frame(w);f.pack(fill="x",padx=18)
@@ -28,7 +28,7 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
   ttk.Label(f,text=lab).grid(row=r,column=0,sticky="e",padx=6,pady=8)
   if vals is None:ttk.Entry(f,textvariable=var,width=38).grid(row=r,column=1,sticky="w")
   else:ttk.Combobox(f,textvariable=var,values=vals,state="readonly",width=35).grid(row=r,column=1,sticky="w")
- ttk.Label(w,text="After creation this artwork appears immediately in Create Piece. Select it there to create the Clip Studio workspace for Walking, Face, Downed, Battle or Preview art.",wraplength=700).pack(anchor="w",padx=18,pady=16)
+ ttk.Label(f,text="Compatibility").grid(row=3,column=0,sticky="e",padx=6,pady=8)\n ttk.Combobox(f,textvariable=scope,values=["Body Specific","Family Compatible","Head Compatible","Universal"],state="readonly",width=35).grid(row=3,column=1,sticky="w")\n ttk.Label(f,text="Female bust fit").grid(row=4,column=0,sticky="e",padx=6,pady=8)\n ttk.Combobox(f,textvariable=bust,values=["Any","Small","Medium","Large"],state="readonly",width=35).grid(row=4,column=1,sticky="w")\n ttk.Label(w,text="Body Specific is safest for fitted clothing/armor. Family Compatible shares within the same Male/Female/Youth/Child family. Head Compatible is intended for head/face/hair pieces. Universal is for artwork deliberately aligned across all bodies.",wraplength=700).pack(anchor="w",padx=18,pady=10)
  def create():
   n=name.get().strip()
   if not n or not body.get():messagebox.showerror("Missing information","Enter a piece name and choose a body master.");return
@@ -46,13 +46,13 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
  ttk.Button(w,text="Create Artwork",command=create).pack(pady=18)
 
 def new_master_dialog(parent,on_done=None):
- w=tk.Toplevel(parent);w.title("Create New Body Master");w.geometry("590x470");w.transient(parent);w.grab_set()
- family=tk.StringVar(value="Female");kind=tk.StringVar(value="Chubby");name=tk.StringVar(value="Female Chubby")
+ w=tk.Toplevel(parent);w.title("Create New Body Master");w.geometry("620x520");w.transient(parent);w.grab_set()
+ family=tk.StringVar(value="Female");kind=tk.StringVar(value="Chubby");name=tk.StringVar(value="Female Chubby");bust=tk.StringVar(value="Medium")
  data=load(REG,{"masters":[]});refs=["None"]+[m["name"] for m in data["masters"]];ref=tk.StringVar(value=refs[1] if len(refs)>1 else "None")
  ttk.Label(w,text="Create New Master Body Sprite",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
  ttk.Label(w,text="The artist draws the actual new body in Clip Studio. Existing masters can be used only as alignment references.",wraplength=540).pack(anchor="w",padx=18,pady=(0,12))
  f=ttk.Frame(w);f.pack(fill="x",padx=18)
- rows=[("Family",family,FAMILIES),("Body type",kind,BODYTYPES),("Display name",name,None),("Reference master",ref,refs)]
+ rows=[("Family",family,FAMILIES),("Body type",kind,BODYTYPES),("Female bust profile",bust,["Small","Medium","Large","Not Applicable"]),("Display name",name,None),("Reference master",ref,refs)]
  for r,(lab,var,vals) in enumerate(rows):
   ttk.Label(f,text=lab).grid(row=r,column=0,sticky="e",padx=6,pady=8)
   if vals:ttk.Combobox(f,textvariable=var,values=vals,state="readonly",width=35).grid(row=r,column=1,sticky="w")
@@ -75,7 +75,7 @@ def new_master_dialog(parent,on_done=None):
   mid=f"PS-BODY-{max([3999]+nums)+1:05d}"
   sizes={"TV":[144,192],"FG":[144,144],"TVD":[144,48],"SV":[576,384],"Variation":[64,64]}
   outputs={k:{"size":v,"status":"draft","locked":False,"base":f"masters/{slug}/{k}/{mid}_{k}.png"} for k,v in sizes.items()}
-  master={"id":mid,"key":slug,"name":n,"family":family.get(),"bodyType":kind.get(),"status":"draft","source":"Project Shonen","outputs":outputs}
+  master={"id":mid,"key":slug,"name":n,"family":family.get(),"bodyType":kind.get(),"bust":(bust.get() if family.get()=="Female" else "Not Applicable"),"status":"draft","source":"Project Shonen","outputs":outputs}
   if ref.get()!="None":
    rm=next((m for m in data["masters"] if m.get("name")==ref.get()),None)
    if rm:master["referenceMasterId"]=rm.get("id")
