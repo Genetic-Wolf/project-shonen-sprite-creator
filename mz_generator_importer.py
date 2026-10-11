@@ -4,7 +4,8 @@ from PIL import Image
 import app_paths
 
 REP_DIR={"FG":"Face","TV":"TV","TVD":"TVD","SV":"SV","Variation":"Variation"}
-EXPECTED={"TV":(144,192),"TVD":(144,48),"SV":(576,384),"Variation":(64,64)}
+EXPECTED={"TV":(144,192),"FG":(144,144),"TVD":(144,48),"SV":(576,384),"Variation":(64,64)}
+ALLOWED={"TV":{(144,192)},"FG":{(144,144),(160,160)},"TVD":{(144,48)},"SV":{(576,384)},"Variation":{(64,64)}}
 CATEGORY_MAP={
  "FrontHair":"Hair / Front","RearHair":"Hair / Rear","Eyes":"Face / Eyes",
  "Eyebrows":"Face / Eyebrows","Nose":"Face / Nose","Mouth":"Face / Mouth",
@@ -34,10 +35,12 @@ def _save(path,data):
  path.parent.mkdir(parents=True,exist_ok=True)
  path.write_text(json.dumps(data,indent=2),encoding="utf-8")
 
-def _png_ok(data):
+def _png_info(data):
  try:
-  im=Image.open(io.BytesIO(data));im.verify();return True
- except Exception:return False
+  im=Image.open(io.BytesIO(data));size=im.size;im.verify();return size
+ except Exception:return None
+
+def _png_ok(data):return _png_info(data) is not None
 
 def _rel(path):
  return str(path.relative_to(app_paths.DATA_ROOT)).replace("\\","/")
@@ -89,6 +92,29 @@ def refresh_local_import():
  dest=app_paths.DATA_ROOT/"mz_generator"
  if not (dest/"TV").is_dir():raise ValueError("No previously imported RPG Maker MZ generator library was found.")
  return _register_existing(dest,0,0)
+
+def audit_local_generator(dest):
+ issues=[];counts={};face_sizes=set()
+ for sex in SEXES:
+  for rep,folder in REP_DIR.items():
+   d=Path(dest)/folder/sex
+   if not d.exists():issues.append("Missing "+folder+"/"+sex);continue
+   for p in d.glob("*.png"):
+    try:
+     with Image.open(p) as im:size=im.size
+    except Exception:continue
+    counts[rep]=counts.get(rep,0)+1
+    if rep=="FG":face_sizes.add(size)
+    if size not in ALLOWED[rep]:issues.append(rep+" unexpected size "+str(size)+" "+p.name)
+  for rep in ("TV","FG","TVD","SV"):
+   p=_find_body(Path(dest),rep,sex)
+   if not p:issues.append("Missing "+sex+" "+rep+" body")
+   else:
+    try:
+     with Image.open(p) as im:size=im.size
+     if size!=EXPECTED[rep]:issues.append(sex+" "+rep+" body size "+str(size))
+    except Exception:issues.append("Unreadable "+sex+" "+rep+" body")
+ return {"ok":not issues,"issues":issues,"counts":counts,"faceSizes":[list(x) for x in sorted(face_sizes)]}
 
 def _register_existing(dest,valid=0,invalid=0):
  regp=app_paths.DATA_ROOT/"master_registry.json";reg=_load(regp,{"schemaVersion":2,"masters":[]})
@@ -147,4 +173,6 @@ def _register_existing(dest,valid=0,invalid=0):
    if draw & masks:invariant_errors.append(a.get("id","?")+" "+rep+" mask/draw overlap")
    if any(x.get("role","art")!="art" for x in o.get("layers",[])):invariant_errors.append(a.get("id","?")+" "+rep+" non-art render layer")
  if invariant_errors:raise ValueError("Imported RPG Maker library failed render-safety validation: "+"; ".join(invariant_errors[:8]))
- return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"drawableFilesRegistered":art_files,"colorMaskFilesRegistered":mask_files,"renderSafetyValidated":True,"destination":str(dest)}
+ audit=audit_local_generator(dest)
+ if audit["issues"]:raise ValueError("Imported RPG Maker library failed native-format validation: "+"; ".join(audit["issues"][:8]))
+ return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"drawableFilesRegistered":art_files,"colorMaskFilesRegistered":mask_files,"renderSafetyValidated":True,"nativeFormatValidated":audit["ok"],"nativeFormatAudit":audit,"destination":str(dest)}
