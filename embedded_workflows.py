@@ -20,7 +20,8 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
  data=load(REG,{"masters":[]});lib=load(LIB,{"assets":[]})
  w=tk.Toplevel(parent);w.title("Create Reusable Piece");w.geometry("760x700");w.transient(parent);w.grab_set()
  name=tk.StringVar();cat=tk.StringVar(value=preferred_category if preferred_category in CATEGORIES else "Hair / Front")
- masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=preferred_body if preferred_body in masters else (masters[0] if masters else ""))\n scope=tk.StringVar(value="Body Specific");bust=tk.StringVar(value="Any")
+ masters=[m["name"] for m in data["masters"]];body=tk.StringVar(value=preferred_body if preferred_body in masters else (masters[0] if masters else ""))
+ scope=tk.StringVar(value="Body Specific");bust=tk.StringVar(value="Any")
  ttk.Label(w,text="Create Artwork",font=("TkDefaultFont",15,"bold")).pack(anchor="w",padx=18,pady=(18,4))
  ttk.Label(w,text="1. Choose the body this artwork fits.  2. Choose what you are drawing.  3. Give it a normal name. The program handles IDs and files.",wraplength=700).pack(anchor="w",padx=18,pady=(0,12))
  f=ttk.Frame(w);f.pack(fill="x",padx=18)
@@ -28,7 +29,11 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
   ttk.Label(f,text=lab).grid(row=r,column=0,sticky="e",padx=6,pady=8)
   if vals is None:ttk.Entry(f,textvariable=var,width=38).grid(row=r,column=1,sticky="w")
   else:ttk.Combobox(f,textvariable=var,values=vals,state="readonly",width=35).grid(row=r,column=1,sticky="w")
- ttk.Label(f,text="Compatibility").grid(row=3,column=0,sticky="e",padx=6,pady=8)\n ttk.Combobox(f,textvariable=scope,values=["Body Specific","Family Compatible","Head Compatible","Universal"],state="readonly",width=35).grid(row=3,column=1,sticky="w")\n ttk.Label(f,text="Female bust fit").grid(row=4,column=0,sticky="e",padx=6,pady=8)\n ttk.Combobox(f,textvariable=bust,values=["Any","Small","Medium","Large"],state="readonly",width=35).grid(row=4,column=1,sticky="w")\n ttk.Label(w,text="Body Specific is safest for fitted clothing/armor. Family Compatible shares within the same Male/Female/Youth/Child family. Head Compatible is intended for head/face/hair pieces. Universal is for artwork deliberately aligned across all bodies.",wraplength=700).pack(anchor="w",padx=18,pady=10)
+ ttk.Label(f,text="Compatibility").grid(row=3,column=0,sticky="e",padx=6,pady=8)
+ ttk.Combobox(f,textvariable=scope,values=["Body Specific","Family Compatible","Head Compatible","Universal"],state="readonly",width=35).grid(row=3,column=1,sticky="w")
+ ttk.Label(f,text="Female bust fit").grid(row=4,column=0,sticky="e",padx=6,pady=8)
+ ttk.Combobox(f,textvariable=bust,values=["Any","Small","Medium","Large"],state="readonly",width=35).grid(row=4,column=1,sticky="w")
+ ttk.Label(w,text="Body Specific is safest for fitted clothing/armor. Family Compatible shares within the same Male/Female/Youth/Child family. Head Compatible is intended for head/face/hair pieces. Universal is for artwork deliberately aligned across all bodies.",wraplength=700).pack(anchor="w",padx=18,pady=10)
  def create():
   n=name.get().strip()
   if not n or not body.get():messagebox.showerror("Missing information","Enter a piece name and choose a body master.");return
