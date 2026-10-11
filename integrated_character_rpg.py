@@ -8,6 +8,7 @@ import asset_package
 import embedded_workflows
 import body_master
 import piece_lifecycle
+import mz_export
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -447,12 +448,7 @@ Choose a body with the required artwork, or add that body artwork on the Body pa
 "+"\
 ".join(missing))
    return False
-  safe=re.sub(r'[^A-Za-z0-9_-]+','_',self.name.get().strip()) or "Character";d=ROOT/"exports"/out;d.mkdir(parents=True,exist_ok=True)
-  if out=="TV":fn=f"${safe}.png"
-  elif out=="FG":fn=f"{safe}_Face.png"
-  elif out=="TVD":fn=f"${safe}_Downed.png"
-  else:fn=f"{safe}_SV.png"
-  canvas.save(d/fn);return True
+  d=ROOT/"exports"/out;d.mkdir(parents=True,exist_ok=True);fn=mz_export.filename(self.name.get(),out);canvas.save(d/fn);mz_export.write_manifest(ROOT,self.name.get());return True
  def export(self):
   out=self.preview_out.get()
   if self.export_one(out):messagebox.showinfo("Output ready",f"{out} artwork was exported successfully.\
