@@ -569,34 +569,29 @@ class RPGInstaller(ttk.Frame):
  def build(self):
   self.project=tk.StringVar(value=self.cfg.get("rpgMakerProject",""))
   f=ttk.Frame(self);f.pack(fill="x");ttk.Label(f,text="RPG Maker MZ Project").pack(side="left");ttk.Entry(f,textvariable=self.project).pack(side="left",fill="x",expand=True,padx=6);ttk.Button(f,text="Choose",command=self.choose).pack(side="left")
-  self.tree=ttk.Treeview(self,columns=("dest","ready"),show="tree headings");self.tree.heading("#0",text="Output");self.tree.heading("dest",text="Destination");self.tree.heading("ready",text="Ready Files");self.tree.pack(fill="both",expand=True,pady=10)
-  b=ttk.Frame(self);b.pack(fill="x");ttk.Button(b,text="Refresh",command=self.refresh).pack(side="left");ttk.Button(b,text="Install All Ready Graphics",command=self.install).pack(side="right")
+  ttk.Label(self,text="Select individual staged graphics for a selective install, or install the complete ready set. Existing same-name project files are backed up before replacement.",wraplength=900).pack(anchor="w",pady=(8,0))
+  self.tree=ttk.Treeview(self,columns=("output","dest","size"),show="tree headings",selectmode="extended");self.tree.heading("#0",text="File");self.tree.heading("output",text="Output");self.tree.heading("dest",text="RPG Maker Destination");self.tree.heading("size",text="Bytes");self.tree.column("dest",width=420);self.tree.pack(fill="both",expand=True,pady=10)
+  b=ttk.Frame(self);b.pack(fill="x");ttk.Button(b,text="Refresh",command=self.refresh).pack(side="left");ttk.Button(b,text="Install Selected",command=self.install_selected).pack(side="right");ttk.Button(b,text="Install All Ready Graphics",command=self.install).pack(side="right",padx=5)
   self.refresh()
  def choose(self):
   p=filedialog.askdirectory()
   if not p:return
-  q=Path(p)
-  if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Not an RPG Maker MZ project","Choose the project root containing img and data.");return
+  if not mz_export.validate_project(p):messagebox.showerror("Not an RPG Maker MZ project","Choose the project root containing img and data.");return
   self.project.set(p);self.cfg["rpgMakerProject"]=p;save(SET,self.cfg)
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
-  for typ,dest in DEST.items():
-   d=ROOT/"exports"/typ;n=len(list(d.glob("*.png"))) if d.exists() else 0;self.tree.insert("","end",text=typ,values=(dest,n))
- def install(self):
-  q=Path(self.project.get())
-  if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Setup required","Choose a valid RPG Maker MZ project first.");return
-  stamp=time.strftime("%Y%m%d-%H%M%S");bak=ROOT/"backups"/stamp;installed=backed=0
-  for typ,dest in DEST.items():
-   src=ROOT/"exports"/typ
-   if not src.exists():continue
-   dd=q/dest;dd.mkdir(parents=True,exist_ok=True)
-   for p in src.glob("*.png"):
-    target=dd/p.name
-    if target.exists():
-     bd=bak/dest;bd.mkdir(parents=True,exist_ok=True);shutil.copy2(target,bd/p.name);backed+=1
-    shutil.copy2(p,target);installed+=1
-  messagebox.showinfo("Installation complete",f"Installed {installed} graphics.\
-Backed up {backed} replaced graphics.");self.refresh()
+  for n,r in enumerate(mz_export.staged_files(ROOT)):self.tree.insert("","end",iid=str(n),text=r["filename"],values=(r["output"],r["destination"],r["size"]))
+ def install_selected(self):
+  rows=mz_export.staged_files(ROOT);selected=[rows[int(i)]["destination"] for i in self.tree.selection() if str(i).isdigit() and int(i)<len(rows)]
+  if not selected:messagebox.showinfo("Choose graphics","Select one or more staged graphics first.");return
+  self._install(selected)
+ def install(self):self._install(None)
+ def _install(self,selected):
+  try:
+   r=mz_export.install(ROOT,self.project.get(),selected)
+   if not r["installed"]:messagebox.showinfo("Nothing to install","No matching staged graphics were selected.");return
+   messagebox.showinfo("Installation complete","Installed "+str(r["installed"])+" graphics."+chr(10)+"Backed up "+str(r["backedUp"])+" replaced graphics."+chr(10)+chr(10)+"An installation manifest was saved with the staged exports.");self.refresh()
+  except Exception as e:messagebox.showerror("Installation failed",str(e))
 
 class Health(ttk.Frame):
  def __init__(self,parent):
