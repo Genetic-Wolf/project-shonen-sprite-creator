@@ -8,4 +8,8 @@ assert len(q["Imported References"])==1 and len(q["In Production"])==1
 info=d.classify(assets[1],masters)
 assert info["missing"]==5 and info["action"]=="Continue Production"
 print("Visual production dashboard regression: OK")
-\nfrom pathlib import Path\nsrc=Path("integrated_editors.py").read_text(encoding="utf-8")\nassert '"Needs Attention","In Production","Ready for Review","Production Ready","Imported References"' in src\nassert "def rebuild_filtered(self):" in src\n
+
+from pathlib import Path
+src=Path("integrated_editors.py").read_text(encoding="utf-8")
+assert '"Needs Attention","In Production","Ready for Review","Production Ready","Imported References"' in src
+assert "def rebuild_filtered(self):" in src
