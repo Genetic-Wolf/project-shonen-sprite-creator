@@ -6,6 +6,8 @@ assert d.classify(ref,masters)["state"]=="Imported MZ Reference"
 info=d.classify(draft,masters);assert info["missing"]==5 and info["action"]=="Continue Production" and info["progress"]=="W· F· D· B· P·"
 q=d.queues([ref,draft],masters);assert len(q["Imported References"])==1 and len(q["In Production"])==1
 assert d.body_label(draft,masters)=="Male Standard"
+broken={"id":"X","status":"draft","compatibility":{"homeMasterId":"MISSING","matrix":{"MISSING":"CUSTOM"}},"variants":{},"outputs":{}}
+assert d.classify(broken,masters)["attention"]>=1
 assert [x[0]["id"] for x in d.filter_assets([ref,draft],masters,query="vest")]==["D"]
 assert [x[0]["id"] for x in d.filter_assets([ref,draft],masters,category="Hair / Front")]==["R"]
 assert [x[0]["id"] for x in d.filter_assets([ref,draft],masters,body="Male Standard")]==["D"]
