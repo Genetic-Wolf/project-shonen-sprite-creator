@@ -65,8 +65,9 @@ class LibraryGallery(ttk.Frame):
    ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=150).pack()
 
 class PieceEditor(ttk.Frame):
- def __init__(self,parent):
+ def __init__(self,parent,select_asset_id=None,auto_continue=False):
   super().__init__(parent);self.lib=load(LIB,{"assets":[]});self.reg=load(REG,{"masters":[]});self.current=None;self.pic=None;self.build()
+  if select_asset_id:self.select_asset(select_asset_id,auto_continue)
  def build(self):
   pan=ttk.Panedwindow(self,orient="horizontal");pan.pack(fill="both",expand=True)
   l=ttk.Frame(pan,padding=6);r=ttk.Frame(pan,padding=6);pan.add(l,weight=2);pan.add(r,weight=5)
@@ -90,6 +91,12 @@ class PieceEditor(ttk.Frame):
    ttk.Button(f,text="Open Artwork",command=lambda x=k:self.openart(x)).pack(side="right")
   self.production=tk.StringVar(value="Production: choose a reusable piece");ttk.Label(r,textvariable=self.production).pack(anchor="w",pady=(2,4))
   self.preview=tk.Canvas(r,width=360,height=260,bg="#30343b",highlightthickness=0);self.preview.pack(fill="both",expand=True)
+ def select_asset(self,asset_id,auto_continue=False):
+  idx=next((i for i,a in enumerate(self.lib.get("assets",[])) if a.get("id")==asset_id),None)
+  if idx is None:return False
+  self.list.selection_clear(0,"end");self.list.selection_set(idx);self.list.see(idx);self.current=idx;self.select()
+  if auto_continue:self.after(100,self.continue_artwork)
+  return True
  def asset(self):
   return self.lib["assets"][self.current] if self.current is not None else None
  def select(self,e=None):
@@ -281,7 +288,12 @@ class PieceEditor(ttk.Frame):
   d=ROOT/"assets"/"outputs"/out;d.mkdir(parents=True,exist_ok=True);dst=d/f'{a["id"]}_{out}.png';im.save(dst)
   a.setdefault("outputs",{})[out]={"status":"complete","path":str(dst.relative_to(ROOT)).replace("\\","/")}
   if out=="TV":a["path"]=a["outputs"][out]["path"]
-  save(LIB,self.lib);self.select();messagebox.showinfo("Artwork installed",a["name"]+" "+OUTS[out][0]+" artwork is now available to the character creator.")
+  if a.get("approved"):
+   a["approved"]=False;a["status"]="revision"
+  save(LIB,self.lib);self.select()
+  state=piece_lifecycle.lifecycle(a,self.reg.get("masters",[]))
+  if state=="Review":messagebox.showinfo("Artwork sequence complete",a["name"]+" now has all required artwork and is ready for review and approval.")
+  elif messagebox.askyesno("Artwork installed",a["name"]+" "+OUTS[out][0]+" is installed. Continue to the next required artwork?"):self.after(100,self.continue_artwork)
  def importpng(self,out):
   a=self.asset()
   if not a:return
@@ -295,7 +307,12 @@ class PieceEditor(ttk.Frame):
   d=ROOT/"assets/outputs"/out;d.mkdir(parents=True,exist_ok=True);dst=d/f'{a["id"]}_{out}.png';im.save(dst)
   a.setdefault("outputs",{})[out]={"status":"complete","path":str(dst.relative_to(ROOT)).replace("\\","/")}
   if out=="TV":a["path"]=a["outputs"][out]["path"]
+  if a.get("approved"):
+   a["approved"]=False;a["status"]="revision"
   save(LIB,self.lib);self.select()
+  state=piece_lifecycle.lifecycle(a,self.reg.get("masters",[]))
+  if state=="Review":messagebox.showinfo("Artwork sequence complete",a["name"]+" now has all required artwork and is ready for review and approval.")
+  elif messagebox.askyesno("Artwork installed","Continue to the next required artwork?"):self.after(100,self.continue_artwork)
  def openart(self,out):
   a=self.asset()
   if not a:return
