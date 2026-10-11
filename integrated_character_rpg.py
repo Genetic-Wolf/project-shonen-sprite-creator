@@ -167,7 +167,10 @@ class CharacterBuilder(ttk.Frame):
   matrix=c.get("matrix") or {}
   explicit=matrix.get(m.get("id"))
   if explicit=="YES":return True
-  if explicit in ("CUSTOM","NO"):return False
+  if explicit=="NO":return False
+  if explicit=="CUSTOM":
+   variants=(a.get("variants") or {}).get(m.get("id"),{})
+   return any(v.get("status")=="complete" and v.get("path") for v in variants.values())
   scope=c.get("scope")
   if not scope:return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
   if scope=="Universal":return True
@@ -333,6 +336,8 @@ class CharacterBuilder(ttk.Frame):
   back_categories={"RearHair","Cloak","Tail","Wing"}
   for order,i in enumerate(self.selected):
    a=self.lib["assets"][i];o=a.get("outputs",{}).get(out,{})
+   choice=((a.get("compatibility") or {}).get("matrix") or {}).get(m.get("id"))
+   if choice=="CUSTOM":o=(a.get("variants") or {}).get(m.get("id"),{}).get(out,{})
    if o.get("status")!="complete" or not o.get("path"):missing.append(f'{a["name"]} ({out})');continue
    layers=o.get("layers")
    if layers:
