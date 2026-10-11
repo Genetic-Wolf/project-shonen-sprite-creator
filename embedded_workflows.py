@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from pathlib import Path
 import app_paths
 import json,re
+import body_master
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -73,11 +74,8 @@ def new_master_dialog(parent,on_done=None):
   slug=re.sub(r"[^A-Za-z0-9]+","_",n).strip("_") or "Custom_Body"
   basekey=slug;used={m.get("key") for m in data["masters"]};i=2
   while slug in used:slug=basekey+"_"+str(i);i+=1
-  nums=[]
-  for m in data["masters"]:
-   hit=re.search(r"(\\d+)$",str(m.get("id","")))
-   if hit:nums.append(int(hit.group(1)))
-  mid=f"PS-BODY-{max([3999]+nums)+1:05d}"
+  try:mid=body_master.allocate_id(data["masters"])
+  except ValueError as e:messagebox.showerror("Body ID range full",str(e));return
   sizes={"TV":[144,192],"FG":[144,144],"TVD":[144,48],"SV":[576,384],"Variation":[64,64]}
   outputs={k:{"size":v,"status":"draft","locked":False,"base":f"masters/{slug}/{k}/{mid}_{k}.png"} for k,v in sizes.items()}
   master={"id":mid,"key":slug,"name":n,"family":family.get(),"bodyType":kind.get(),"bust":(bust.get() if family.get()=="Female" else "Not Applicable"),"status":"draft","source":"Project Shonen","outputs":outputs}
