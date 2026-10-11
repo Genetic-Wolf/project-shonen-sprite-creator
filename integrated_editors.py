@@ -42,63 +42,52 @@ def guide(size,out):
  return im
 
 class LibraryGallery(ttk.Frame):
+ QUEUES=("All","Needs Attention","In Production","Ready for Review","Production Ready","Imported References")
  def __init__(self,parent,kind="pieces",on_continue=None):
-  super().__init__(parent);self.kind=kind;self.on_continue=on_continue;self.photos=[];self.build()
+  super().__init__(parent);self.kind=kind;self.on_continue=on_continue;self.photos=[];self.query=tk.StringVar();self.queue=tk.StringVar(value="All");self.category=tk.StringVar(value="All");self.body=tk.StringVar(value="All");self.sort=tk.StringVar(value="Priority");self.build()
  def build(self):
-  data=load(LIB,{"assets":[]}).get("assets",[]) if self.kind=="pieces" else load(REG,{"masters":[]}).get("masters",[])
-  masters=load(REG,{"masters":[]}).get("masters",[])
-  if not data:
-   ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return
+  data=load(LIB,{"assets":[]}).get("assets",[]) if self.kind=="pieces" else load(REG,{"masters":[]}).get("masters",[]);masters=load(REG,{"masters":[]}).get("masters",[])
+  if not data:ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return
   if self.kind=="pieces":
-   q=production_dashboard.queues(data,masters);summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6));self.filter=tk.StringVar(value="All")
-   ttk.Label(summary,text="Show:").pack(side="left",padx=(0,4))
-   for name in ("All","Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
-    count=len(data) if name=="All" else len(q[name]);ttk.Radiobutton(summary,text=name+" ("+str(count)+")",variable=self.filter,value=name,command=self.rebuild).pack(side="left",padx=3)
+   cats=sorted({str(a.get("category","Uncategorized")) for a in data});bodies=sorted({production_dashboard.body_label(a,masters) for a in data})
+   tools=ttk.Frame(self);tools.pack(fill="x",pady=(0,6))
+   ttk.Label(tools,text="Search").grid(row=0,column=0,sticky="w");e=ttk.Entry(tools,textvariable=self.query,width=24);e.grid(row=1,column=0,padx=(0,6));e.bind("<Return>",lambda _e:self.refresh())
+   ttk.Label(tools,text="Queue").grid(row=0,column=1,sticky="w");ttk.Combobox(tools,textvariable=self.queue,values=self.QUEUES,state="readonly",width=18).grid(row=1,column=1,padx=3)
+   ttk.Label(tools,text="Category").grid(row=0,column=2,sticky="w");ttk.Combobox(tools,textvariable=self.category,values=["All"]+cats,state="readonly",width=20).grid(row=1,column=2,padx=3)
+   ttk.Label(tools,text="Body").grid(row=0,column=3,sticky="w");ttk.Combobox(tools,textvariable=self.body,values=["All"]+bodies,state="readonly",width=20).grid(row=1,column=3,padx=3)
+   ttk.Label(tools,text="Sort").grid(row=0,column=4,sticky="w");ttk.Combobox(tools,textvariable=self.sort,values=["Priority","Name","Category","Body"],state="readonly",width=12).grid(row=1,column=4,padx=3)
+   ttk.Button(tools,text="Apply",command=self.refresh).grid(row=1,column=5,padx=4);ttk.Button(tools,text="Clear",command=self.clear_filters).grid(row=1,column=6,padx=4)
+   q=production_dashboard.queues(data,masters);summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6))
+   for name in self.QUEUES[1:]:ttk.Label(summary,text=name+": "+str(len(q[name])),padding=(5,3)).pack(side="left")
+   shown=production_dashboard.filter_assets(data,masters,self.query.get(),self.queue.get(),self.category.get(),self.body.get(),self.sort.get())
+   ttk.Label(summary,text="Showing "+str(len(shown))+" of "+str(len(data)),padding=(8,3)).pack(side="right")
+  else:shown=[(a,None,None,None,None) for a in data]
   cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
-  shown=data
-  if self.kind=="pieces" and hasattr(self,"filter") and self.filter.get()!="All":shown=[x[0] for x in q[self.filter.get()]]
-  for n,item in enumerate(shown):
-   card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew")
+  for n,row in enumerate(shown):
+   item,info,bucket,cat,body=row;card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=7);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew");inner.grid_columnconfigure(n%4,weight=1,minsize=190)
    p=None
    if self.kind=="pieces":
-    o=item.get("outputs",{}).get("Variation") or item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("path","")) if o.get("path") else None
+    outs=item.get("outputs",{});o=outs.get("Variation") if (outs.get("Variation") or {}).get("path") else outs.get("TV",{});p=app_paths.resolve(o.get("path","")) if o and o.get("path") else None
    else:
     o=item.get("outputs",{}).get("TV",{});p=app_paths.resolve(o.get("base","")) if o.get("base") else None
    if p and p.exists():
     try:
      im=Image.open(p).convert("RGBA")
-     if im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
-     im.thumbnail((96,96),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.photos.append(ph);ttk.Label(card,image=ph).pack()
-    except Exception:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
-   else:ttk.Label(card,text="Preview unavailable",width=18).pack(pady=25)
-   ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=150).pack()
+     if p.name.lower().find("variation")<0 and im.width>=96 and im.height>=48:im=im.crop((48,0,96,48))
+     im.thumbnail((112,112),Image.Resampling.NEAREST);ph=ImageTk.PhotoImage(im);self.photos.append(ph);ttk.Label(card,image=ph).pack(pady=(0,4))
+    except Exception:ttk.Label(card,text="Preview unavailable",width=20).pack(pady=25)
+   else:ttk.Label(card,text="Preview unavailable",width=20).pack(pady=25)
+   ttk.Label(card,text=item.get("category",item.get("status","")),wraplength=175).pack()
    if self.kind=="pieces":
-    info=production_dashboard.classify(item,masters)
-    ttk.Label(card,text=info["state"],wraplength=150).pack()
-    if info["missing"] or info["attention"]:ttk.Label(card,text="Missing: "+str(info["missing"])+"   Attention: "+str(info["attention"])).pack()
-    if self.on_continue and info["action"]!="Reference":
-     ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
- def rebuild(self):
-  choice=self.filter.get() if hasattr(self,"filter") else "All"
+    ttk.Label(card,text=body,wraplength=175).pack();ttk.Label(card,text=info["state"],wraplength=175).pack()
+    if info["progress"]:ttk.Label(card,text=info["progress"],font=("TkFixedFont",9)).pack(pady=(3,0))
+    if info["missing"] or info["attention"]:ttk.Label(card,text="Missing "+str(info["missing"])+"  •  Attention "+str(info["attention"])).pack()
+    if self.on_continue and info["action"]!="Reference":ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
+ def refresh(self):
   for w in self.winfo_children():w.destroy()
   self.photos=[];self.build()
-  if hasattr(self,"filter"):self.filter.set(choice)
-  if self.kind=="pieces" and choice!="All":
-   self.after_idle(self.rebuild_filtered)
- def rebuild_filtered(self):
-  choice=self.filter.get()
-  if choice=="All":return
-  for w in self.winfo_children():w.destroy()
-  self.photos=[]
-  data=load(LIB,{"assets":[]}).get("assets",[]);masters=load(REG,{"masters":[]}).get("masters",[]);q=production_dashboard.queues(data,masters)
-  summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6));self.filter=tk.StringVar(value=choice);ttk.Label(summary,text="Show:").pack(side="left",padx=(0,4))
-  for name in ("All","Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
-   count=len(data) if name=="All" else len(q[name]);ttk.Radiobutton(summary,text=name+" ("+str(count)+")",variable=self.filter,value=name,command=self.rebuild).pack(side="left",padx=3)
-  cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
-  for n,(item,info) in enumerate(q[choice]):
-   card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew");ttk.Label(card,text=item.get("category",""),wraplength=150).pack();ttk.Label(card,text=info["state"],wraplength=150).pack()
-   if info["missing"] or info["attention"]:ttk.Label(card,text="Missing: "+str(info["missing"])+"   Attention: "+str(info["attention"])).pack()
-   if self.on_continue and info["action"]!="Reference":ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
+ def clear_filters(self):
+  self.query.set("");self.queue.set("All");self.category.set("All");self.body.set("All");self.sort.set("Priority");self.refresh()
 
 class PieceEditor(ttk.Frame):
  def __init__(self,parent,select_asset_id=None,auto_continue=False):
