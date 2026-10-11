@@ -160,7 +160,20 @@ class CharacterBuilder(ttk.Frame):
   if self.active_group:
    fields=next((fs for g,fs in CUSTOMIZATION_FIELDS if g==self.active_group),[])
    if fields:self.show_fields(self.active_group,fields)
- def compatible(self,a,m):return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
+ def compatible(self,a,m):
+  # Legacy/imported assets remain exact-master compatible unless explicit sharing
+  # metadata has been authored. This prevents accidental cross-body misalignment.
+  c=a.get("compatibility") or {}
+  scope=c.get("scope")
+  if not scope:return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
+  if scope=="Universal":return True
+  if scope=="Body Specific":return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
+  if scope in ("Family Compatible","Head Compatible"):
+   if c.get("family") and c.get("family")!=m.get("family"):return False
+   bust=c.get("bust","Any")
+   if bust not in ("Any","Not Applicable",None) and m.get("family")=="Female" and m.get("bust") not in (bust,None):return False
+   return True
+  return False
  def refresh(self):
   for x in self.tree.get_children():self.tree.delete(x)
   m=self.currentmaster()
@@ -171,7 +184,7 @@ class CharacterBuilder(ttk.Frame):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
     ready=[k for k in ("TV","FG","TVD","SV","Variation") if a.get("outputs",{}).get(k,{}).get("status")=="complete"]
     self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"/".join(ready) if ready else "missing"));shown+=1
-  self.countinfo.set(f"{shown} compatible piece"+("" if shown==1 else "s")+" shown" if shown else "No compatible artwork in this field yet — create or import a reusable piece.")
+  totalfield=sum(1 for a in self.lib["assets"] if (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()))\n  hidden=max(0,totalfield-shown)\n  self.countinfo.set((f"{shown} compatible piece"+("" if shown==1 else "s")+f" shown • {hidden} incompatible hidden") if shown or hidden else "No artwork in this field yet — create or import a reusable piece.")
   counts={}
   for a in self.lib.get("assets",[]):
    if self.compatible(a,m):counts[a.get("category","Other")]=counts.get(a.get("category","Other"),0)+1
@@ -224,7 +237,7 @@ class CharacterBuilder(ttk.Frame):
   sel=self.tree.selection()
   if not sel:return
   a=self.lib["assets"][int(sel[0])];outs=[k for k,v in a.get("outputs",{}).items() if v.get("status")=="complete"]
-  self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+" • outputs: "+(", ".join(outs) if outs else "none"))
+  c=a.get("compatibility") or {};scope=c.get("scope","Exact Body");fit=(" • "+scope) if scope else ""\n  if c.get("bust") not in (None,"Any","Not Applicable"):fit+=" • "+c.get("bust")+" bust"\n  self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+fit+" • outputs: "+(", ".join(outs) if outs else "none"))
  def add(self,e=None):
   s=self.tree.selection()
   if not s:return
