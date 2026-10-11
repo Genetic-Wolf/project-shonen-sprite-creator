@@ -20,6 +20,8 @@ assert compatible(d,a,m) is False
 a["compatibility"]["matrix"]["B-FS"]="CUSTOM"
 assert compatible(d,a,m) is False
 a["variants"]={"B-FS":{"TV":{"status":"complete","path":"assets/variants/test.png"}}}
+assert compatible(d,a,m) is False
+a["variants"]["B-FS"]["_inherit"]=["FG","TVD","SV","Variation"]
 assert compatible(d,a,m) is True
 a["compatibility"]["matrix"]["B-FS"]="YES"
 assert compatible(d,a,m) is True
