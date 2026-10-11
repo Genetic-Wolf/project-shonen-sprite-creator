@@ -261,7 +261,10 @@ class MasterEditor(ttk.Frame):
   if not p:return
   im=Image.open(p).convert("RGBA")
   if list(im.size)!=o["size"]:messagebox.showerror("Wrong canvas",f'Expected {o["size"][0]}×{o["size"][1]}.');return
-  alpha=im.getchannel("A").getextrema()\n  if alpha==(0,0):messagebox.showerror("Empty master","The body master PNG is completely transparent.");return\n  if alpha==(255,255):messagebox.showerror("Transparency required","Body master artwork must preserve a transparent background.");return\n  dst=ROOT/o["base"];dst.parent.mkdir(parents=True,exist_ok=True);im.save(dst);o["status"]="review";save(REG,self.reg);self.select()
+  alpha=im.getchannel("A").getextrema()
+  if alpha==(0,0):messagebox.showerror("Empty master","The body master PNG is completely transparent.");return
+  if alpha==(255,255):messagebox.showerror("Transparency required","Body master artwork must preserve a transparent background.");return
+  dst=ROOT/o["base"];dst.parent.mkdir(parents=True,exist_ok=True);im.save(dst);o["status"]="review";save(REG,self.reg);self.select()
  def approve(self):
   m=self.master();k=self.chosen()
   if not m or not k:return
