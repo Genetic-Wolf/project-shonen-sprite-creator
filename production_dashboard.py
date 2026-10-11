@@ -1,20 +1,21 @@
-import piece_lifecycle,production_pipeline
+import piece_lifecycle,production_pipeline,compatibility_audit
 
 OUTPUT_LABELS={"TV":"W","FG":"F","TVD":"D","SV":"B","Variation":"P"}
 
 def classify(asset,masters):
     source=str(asset.get("source",""))
     if source.startswith("RPG Maker MZ"):
-        return {"state":"Imported MZ Reference","missing":0,"attention":0,"action":"Reference","progress":"","complete":0,"total":0}
+        return {"state":"Imported MZ Reference","missing":0,"attention":0,"action":"Reference","progress":"","complete":0,"total":0,"integrity":[]}
     report=production_pipeline.evaluate(asset,masters)
     state=piece_lifecycle.lifecycle(asset,masters)
     missing=sum(1 for b in report["blockers"] if b.get("reason")=="missing")
-    attention=len(report["blockers"])-missing
+    integrity=compatibility_audit.problems(asset,masters)
+    attention=len(report["blockers"])-missing+len(integrity)
     action="Approve" if state=="Review" else ("Ready" if state=="Production Ready" else "Continue Production")
     marks=[];complete=0
     for out in production_pipeline.ORDER:
         value=report["primary"].get(out,"missing");ok=value=="complete";complete+=int(ok);marks.append(OUTPUT_LABELS[out]+("✓" if ok else "·"))
-    return {"state":state,"missing":missing,"attention":attention,"action":action,"progress":" ".join(marks),"complete":complete,"total":len(production_pipeline.ORDER)}
+    return {"state":state,"missing":missing,"attention":attention,"action":action,"progress":" ".join(marks),"complete":complete,"total":len(production_pipeline.ORDER),"integrity":integrity}
 
 def bucket(info):
     state=info["state"]
