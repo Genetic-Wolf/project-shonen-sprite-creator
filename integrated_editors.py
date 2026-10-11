@@ -144,11 +144,45 @@ class PieceEditor(ttk.Frame):
    if not default:default="YES" if m.get("id")==home else "NO"
    v=tk.StringVar(value=default);vars[m.get("id")]=v
    ttk.Combobox(inner,textvariable=v,values=["YES","CUSTOM","NO"],state="readonly",width=10).grid(row=row,column=2,padx=4)
+   def edit_variant(master=m,var=v):
+    if var.get()!="CUSTOM":messagebox.showinfo("Choose CUSTOM","Set this body to CUSTOM first, save the matrix, then create its fitted artwork.");return
+    self.variant_workspace(a,master)
+   ttk.Button(inner,text="Edit Custom Variant",command=edit_variant).grid(row=row,column=3,padx=4)
   def apply():
    c=a.setdefault("compatibility",{})
    c["matrix"]={mid:v.get() for mid,v in vars.items()}
    save(LIB,self.lib);w.destroy();messagebox.showinfo("Compatibility saved","Body compatibility choices were saved for "+a.get("name","this piece")+".")
   ttk.Button(inner,text="Save Compatibility Matrix",command=apply).grid(row=len(vars)+1,column=0,columnspan=3,pady=16)
+ def variant_workspace(self,a,m):
+  w=tk.Toplevel(self);w.title("Custom Variant — "+a.get("name","Piece")+" / "+m.get("name","Body"));w.geometry("650x520");w.transient(self.winfo_toplevel())
+  ttk.Label(w,text="Custom fitted artwork",font=("TkDefaultFont",13,"bold")).pack(anchor="w",padx=14,pady=(14,4))
+  ttk.Label(w,text="This keeps one reusable-piece identity while storing body-specific artwork for "+m.get("name","this body")+".",wraplength=610).pack(anchor="w",padx=14,pady=(0,10))
+  variants=a.setdefault("variants",{}).setdefault(m.get("id"),{})
+  for out,(label,size) in OUTS.items():
+   row=ttk.Frame(w);row.pack(fill="x",padx=14,pady=3);v=variants.get(out,{})
+   ttk.Label(row,text=label,width=12).pack(side="left");ttk.Label(row,text=("COMPLETE" if v.get("status")=="complete" else "MISSING"),width=12).pack(side="left")
+   def edit(o=out,sz=size):
+    mo=m.get("outputs",{}).get(o,{})
+    if mo.get("status") not in ("approved","reference") or not mo.get("locked"):messagebox.showerror("Master not ready",m.get("name","Body")+" "+o+" must be approved and locked first.");return
+    d=ROOT/"artist_workspace"/"Variants"/a["id"]/m["id"]/o;d.mkdir(parents=True,exist_ok=True)
+    p=app_paths.resolve(mo.get("base",""));layers=[("00_GUIDES_DO_NOT_EXPORT",guide(sz,o))]
+    if p.exists():
+     ref=Image.open(p).convert("RGBA")
+     if ref.size==sz:layers.append(("01_BODY_MASTER_REFERENCE_DO_NOT_EXPORT",ref))
+    layers.append(("02_DRAW_CUSTOM_VARIANT_HERE",Image.new("RGBA",sz,(0,0,0,0))))
+    ora_path=d/f'EDIT_{a["id"]}_{m["id"]}_{o}.ora'
+    if not ora_path.exists() or messagebox.askyesno("Workspace exists","Rebuild this custom-variant workspace? Choose No to preserve and open the existing artwork."):ora(ora_path,layers,sz)
+    self.open_csp(ora_path)
+   def imp(o=out,sz=size):
+    p=filedialog.askopenfilename(title="Import custom "+label+" PNG",filetypes=[("PNG","*.png")])
+    if not p:return
+    im=Image.open(p).convert("RGBA")
+    if im.size!=sz:messagebox.showerror("Wrong canvas",f"Expected {sz[0]}x{sz[1]}.");return
+    alpha=im.getchannel("A").getextrema()
+    if alpha in ((0,0),(255,255)):messagebox.showerror("Transparency required","Custom component artwork must contain visible pixels and transparent background.");return
+    d=ROOT/"assets"/"variants"/a["id"]/m["id"];d.mkdir(parents=True,exist_ok=True);dst=d/(o+".png");im.save(dst)
+    variants[o]={"status":"complete","path":str(dst.relative_to(ROOT)).replace(chr(92),"/")};save(LIB,self.lib);w.destroy();self.variant_workspace(a,m)
+   ttk.Button(row,text="Edit in Clip Studio Paint",command=edit).pack(side="left",padx=3);ttk.Button(row,text="Import PNG",command=imp).pack(side="left",padx=3)
  def smart_import(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select the reusable piece this artwork belongs to first.");return
