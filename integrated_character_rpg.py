@@ -514,8 +514,7 @@ class TransferCenter(ttk.Frame):
    if good:report.extend([""]+["Imported: "+r.get("asset","Artwork")+" - "+r.get("output","") for r in good[:12]])
    if bad:report.extend(["","Needs attention:"]+[r.get("file","File")+": "+r.get("reason","Could not import.") for r in bad[:12]])
    if len(bad)>12:report.append(f"...and {len(bad)-12} more.")
-   self.status.set(report[0]);messagebox.showinfo("Artwork intake complete","
-".join(report))
+   self.status.set(report[0]);messagebox.showinfo("Artwork intake complete",chr(10).join(report))
   except Exception as e:messagebox.showerror("Artwork intake failed",str(e))
  def install_ready(self):
   q=Path(self.project.get())
