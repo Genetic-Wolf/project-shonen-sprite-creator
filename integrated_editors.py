@@ -188,7 +188,8 @@ class PieceEditor(ttk.Frame):
   if focus_output:ttk.Label(w,text="Next required artwork: "+OUTS[focus_output][0]).pack(anchor="w",padx=14,pady=(0,6))
   for out,(label,size) in OUTS.items():
    row=ttk.Frame(w);row.pack(fill="x",padx=14,pady=3);v=variants.get(out,{})
-   ttk.Label(row,text=label,width=12).pack(side="left");ttk.Label(row,text=("COMPLETE" if v.get("status")=="complete" else "MISSING"),width=12).pack(side="left")
+   inherited=out in set(variants.get("_inherit") or [])
+   ttk.Label(row,text=label,width=12).pack(side="left");ttk.Label(row,text=("INHERITED" if inherited else ("COMPLETE" if v.get("status")=="complete" else "MISSING")),width=12).pack(side="left")
    def edit(o=out,sz=size):
     mo=m.get("outputs",{}).get(o,{})
     if mo.get("status") not in ("approved","reference") or not mo.get("locked"):messagebox.showerror("Master not ready",m.get("name","Body")+" "+o+" must be approved and locked first.");return
@@ -210,7 +211,12 @@ class PieceEditor(ttk.Frame):
     if alpha in ((0,0),(255,255)):messagebox.showerror("Transparency required","Custom component artwork must contain visible pixels and transparent background.");return
     d=ROOT/"assets"/"variants"/a["id"]/m["id"];d.mkdir(parents=True,exist_ok=True);dst=d/(o+".png");im.save(dst)
     variants[o]={"status":"complete","path":str(dst.relative_to(ROOT)).replace(chr(92),"/")};save(LIB,self.lib);w.destroy();self.variant_workspace(a,m)
-   ttk.Button(row,text="Edit in Clip Studio Paint",command=edit).pack(side="left",padx=3);ttk.Button(row,text="Import PNG",command=imp).pack(side="left",padx=3)
+   def toggle_inherit(o=out):
+    inherited=set(variants.get("_inherit") or [])
+    if o in inherited:inherited.remove(o)
+    else:inherited.add(o)
+    variants["_inherit"]=sorted(inherited);save(LIB,self.lib);w.destroy();self.variant_workspace(a,m,focus_output=focus_output)
+   ttk.Button(row,text="Edit in Clip Studio Paint",command=edit).pack(side="left",padx=3);ttk.Button(row,text="Import PNG",command=imp).pack(side="left",padx=3);ttk.Button(row,text=("Use Custom" if inherited else "Inherit Primary"),command=toggle_inherit).pack(side="left",padx=3)
  def smart_import(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select the reusable piece this artwork belongs to first.");return
