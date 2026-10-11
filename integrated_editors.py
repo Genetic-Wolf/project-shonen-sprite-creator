@@ -50,11 +50,14 @@ class LibraryGallery(ttk.Frame):
   if not data:
    ttk.Label(self,text="Nothing is available yet. Import RPG Maker MZ generator artwork or create new Project Shonen artwork.",wraplength=700).pack(pady=30);return
   if self.kind=="pieces":
-   q=production_dashboard.queues(data,masters);summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6))
-   for name in ("Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
-    ttk.Label(summary,text=name+": "+str(len(q[name])),padding=(7,4)).pack(side="left")
+   q=production_dashboard.queues(data,masters);summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6));self.filter=tk.StringVar(value="All")
+   ttk.Label(summary,text="Show:").pack(side="left",padx=(0,4))
+   for name in ("All","Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
+    count=len(data) if name=="All" else len(q[name]);ttk.Radiobutton(summary,text=name+" ("+str(count)+")",variable=self.filter,value=name,command=self.rebuild).pack(side="left",padx=3)
   cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
-  for n,item in enumerate(data):
+  shown=data
+  if self.kind=="pieces" and hasattr(self,"filter") and self.filter.get()!="All":shown=[x[0] for x in q[self.filter.get()]]
+  for n,item in enumerate(shown):
    card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew")
    p=None
    if self.kind=="pieces":
@@ -75,6 +78,27 @@ class LibraryGallery(ttk.Frame):
     if info["missing"] or info["attention"]:ttk.Label(card,text="Missing: "+str(info["missing"])+"   Attention: "+str(info["attention"])).pack()
     if self.on_continue and info["action"]!="Reference":
      ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
+ def rebuild(self):
+  choice=self.filter.get() if hasattr(self,"filter") else "All"
+  for w in self.winfo_children():w.destroy()
+  self.photos=[];self.build()
+  if hasattr(self,"filter"):self.filter.set(choice)
+  if self.kind=="pieces" and choice!="All":
+   self.after_idle(self.rebuild_filtered)
+ def rebuild_filtered(self):
+  choice=self.filter.get()
+  if choice=="All":return
+  for w in self.winfo_children():w.destroy()
+  self.photos=[]
+  data=load(LIB,{"assets":[]}).get("assets",[]);masters=load(REG,{"masters":[]}).get("masters",[]);q=production_dashboard.queues(data,masters)
+  summary=ttk.Frame(self);summary.pack(fill="x",pady=(0,6));self.filter=tk.StringVar(value=choice);ttk.Label(summary,text="Show:").pack(side="left",padx=(0,4))
+  for name in ("All","Needs Attention","In Production","Ready for Review","Production Ready","Imported References"):
+   count=len(data) if name=="All" else len(q[name]);ttk.Radiobutton(summary,text=name+" ("+str(count)+")",variable=self.filter,value=name,command=self.rebuild).pack(side="left",padx=3)
+  cv=tk.Canvas(self,highlightthickness=0);sb=ttk.Scrollbar(self,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);cv.pack(side="left",fill="both",expand=True);sb.pack(side="right",fill="y")
+  for n,(item,info) in enumerate(q[choice]):
+   card=ttk.LabelFrame(inner,text=item.get("name",item.get("id","Item")),padding=6);card.grid(row=n//4,column=n%4,padx=5,pady=5,sticky="nsew");ttk.Label(card,text=item.get("category",""),wraplength=150).pack();ttk.Label(card,text=info["state"],wraplength=150).pack()
+   if info["missing"] or info["attention"]:ttk.Label(card,text="Missing: "+str(info["missing"])+"   Attention: "+str(info["attention"])).pack()
+   if self.on_continue and info["action"]!="Reference":ttk.Button(card,text=info["action"],command=lambda aid=item.get("id"):self.on_continue(aid)).pack(fill="x",pady=(5,0))
 
 class PieceEditor(ttk.Frame):
  def __init__(self,parent,select_asset_id=None,auto_continue=False):
