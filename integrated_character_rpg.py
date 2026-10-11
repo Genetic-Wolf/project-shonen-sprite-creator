@@ -318,7 +318,12 @@ class CharacterBuilder(ttk.Frame):
     im=self._apply_saved_palette(a,o,im,nlayer,out)
     # MZ split components conventionally use layer 1 behind the body and layer 2 in front.
     # For single-layer rear categories, place them behind; ordinary single-layer pieces stay in front.
-    behind=(nlayer==1) or (nlayer==0 and native in back_categories)
+    # Native MZ split layers: layer 1 is the rear/under-body plane and layer 2
+    # is the front/over-body plane. Unnumbered rear categories use the rear plane.
+    # Unknown numbered layers fail safe to the front rather than disappearing.
+    if nlayer==1:behind=True
+    elif nlayer>=2:behind=False
+    else:behind=native in back_categories
     (back if behind else front).append((order,seq,im))
   canvas=Image.new("RGBA",body.size,(0,0,0,0))
   for _,__,im in sorted(back,key=lambda x:(x[0],x[1])):canvas.alpha_composite(im)
