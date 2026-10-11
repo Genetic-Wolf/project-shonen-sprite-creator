@@ -7,6 +7,7 @@ import json,shutil,time,re,subprocess
 import asset_package
 import embedded_workflows
 import body_master
+import piece_lifecycle
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -167,6 +168,8 @@ class CharacterBuilder(ttk.Frame):
   c=a.get("compatibility") or {}
   matrix=c.get("matrix") or {}
   explicit=matrix.get(m.get("id"))
+  if not str(a.get("source","")).startswith("RPG Maker MZ") and a.get("status") in ("draft","revision"):return False
+  if a.get("approved") is False and a.get("status")=="production":return False
   if explicit=="YES":return True
   if explicit=="NO":return False
   if explicit=="CUSTOM":
