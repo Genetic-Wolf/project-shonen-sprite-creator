@@ -7,7 +7,7 @@ import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
-REG=ROOT/"master_registry.json";LIB=ROOT/"library.json"
+REG=ROOT/"master_registry.json";LIB=ROOT/"library.json";SET=ROOT/"settings.json"
 OUTS={"TV":("Walking",(144,192)),"FG":("Face",(144,144)),"TVD":("Downed",(144,48)),"SV":("Battle",(576,384)),"Variation":("Preview",(64,64))}
 def load(p,d):
  try:return json.load(open(p,encoding="utf-8"))
@@ -106,12 +106,25 @@ class PieceEditor(ttk.Frame):
   layers=[("00_GUIDES_DO_NOT_EXPORT",guide(size,out))]
   if ref is not None:layers.append(("01_BODY_MASTER_REFERENCE_DO_NOT_EXPORT",ref))
   blank=Image.new("RGBA",size,(0,0,0,0));layers.append((f"02_DRAW_{out}_HERE",blank))
-  path=d/f'EDIT_{a["name"].replace(" ","_")}_{out}.ora';ora(path,layers,size)
+  path=d/f'EDIT_{a["name"].replace(" ","_")}_{out}.ora'
+  if path.exists():
+   if not messagebox.askyesno("Workspace already exists","This Clip Studio workspace already exists. Rebuild it from the current body master?\n\nChoose No to keep your existing artwork and open it without changes."):
+    self.open_csp(path);return
+  ora(path,layers,size)
   (d/"READ_ME_FIRST.txt").write_text("Draw "+a["name"]+" on the DRAW layer. Hide guides/reference before exporting. Export transparent PNG at "+str(size[0])+"x"+str(size[1])+", then return to the creator and click Import PNG.",encoding="utf-8")
   manifest={"schemaVersion":1,"assetId":a["id"],"assetName":a["name"],"category":a.get("category","Other"),"body":a.get("body"),"masterId":a.get("masterId"),"output":out,"expectedSize":list(size),"destination":"assets/outputs/"+out}
   (d/"project_shonen_artwork.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
-  try:os.startfile(path)
-  except:pass
+  self.open_csp(path)
+ def open_csp(self,path):
+  cfg=load(SET,{})
+  exe=Path(cfg.get("clipStudio","")) if cfg.get("clipStudio") else None
+  if not exe or not exe.exists():
+   if not messagebox.askyesno("Connect Clip Studio Paint","Clip Studio Paint is not connected or its program location has changed. Choose the Clip Studio Paint program now?"):return
+   chosen=filedialog.askopenfilename(title="Choose Clip Studio Paint",filetypes=[("Windows program","*.exe"),("All files","*.*")])
+   if not chosen:return
+   exe=Path(chosen);cfg["clipStudio"]=str(exe);save(SET,cfg)
+  try:subprocess.Popen([str(exe),str(path)])
+  except Exception as e:messagebox.showerror("Could not open Clip Studio Paint",str(e))
  def smart_import(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select the reusable piece this artwork belongs to first.");return
