@@ -75,7 +75,7 @@ class PieceEditor(ttk.Frame):
   for k,(label,size) in OUTS.items():
    f=ttk.LabelFrame(self.cards,text=label,padding=6);f.pack(fill="x",pady=2)
    st=tk.StringVar(value="—");self.status[k]=st;ttk.Label(f,textvariable=st,width=12).pack(side="left")
-   ttk.Button(f,text="Create Clip Studio Workspace",command=lambda x=k:self.workspace(x)).pack(side="left",padx=3)
+   ttk.Button(f,text="Edit in Clip Studio Paint",command=lambda x=k:self.workspace(x)).pack(side="left",padx=3)
    ttk.Button(f,text="Import PNG",command=lambda x=k:self.importpng(x)).pack(side="left",padx=3)
    ttk.Button(f,text="Open Artwork",command=lambda x=k:self.openart(x)).pack(side="right")
   self.preview=tk.Canvas(r,width=360,height=260,bg="#30343b",highlightthickness=0);self.preview.pack(fill="both",expand=True)
@@ -165,6 +165,9 @@ class PieceEditor(ttk.Frame):
    messagebox.showerror("Body artwork not ready","This piece cannot be installed until its matching body output is available and locked.");return
   size=OUTS[out][1]
   if im.size!=size:messagebox.showerror("Wrong canvas",f"{OUTS[out][0]} artwork must be {size[0]}×{size[1]}.");return
+  alpha=im.getchannel("A").getextrema()
+  if alpha==(0,0):messagebox.showerror("Empty artwork","The PNG is completely transparent.");return
+  if alpha==(255,255):messagebox.showerror("Transparency required","Reusable component artwork must keep a transparent background.");return
   d=ROOT/"assets"/"outputs"/out;d.mkdir(parents=True,exist_ok=True);dst=d/f'{a["id"]}_{out}.png';im.save(dst)
   a.setdefault("outputs",{})[out]={"status":"complete","path":str(dst.relative_to(ROOT)).replace("\\","/")}
   if out=="TV":a["path"]=a["outputs"][out]["path"]
