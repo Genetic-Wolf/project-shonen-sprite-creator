@@ -164,6 +164,10 @@ class CharacterBuilder(ttk.Frame):
   # Legacy/imported assets remain exact-master compatible unless explicit sharing
   # metadata has been authored. This prevents accidental cross-body misalignment.
   c=a.get("compatibility") or {}
+  matrix=c.get("matrix") or {}
+  explicit=matrix.get(m.get("id"))
+  if explicit=="YES":return True
+  if explicit in ("CUSTOM","NO"):return False
   scope=c.get("scope")
   if not scope:return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
   if scope=="Universal":return True
@@ -241,6 +245,8 @@ class CharacterBuilder(ttk.Frame):
   a=self.lib["assets"][int(sel[0])];outs=[k for k,v in a.get("outputs",{}).items() if v.get("status")=="complete"]
   c=a.get("compatibility") or {};scope=c.get("scope","Exact Body");fit=(" • "+scope) if scope else ""
   if c.get("bust") not in (None,"Any","Not Applicable"):fit+=" • "+c.get("bust")+" bust"
+  matrix=c.get("matrix") or {};choice=matrix.get(self.currentmaster().get("id")) if self.currentmaster() else None
+  if choice:fit+=" • this body: "+choice"
   self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+fit+" • outputs: "+(", ".join(outs) if outs else "none"))
  def add(self,e=None):
   s=self.tree.selection()
