@@ -7,7 +7,7 @@ import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
-REG=ROOT/"master_registry.json";LIB=ROOT/"library.json";SET=ROOT/"settings.json"
+REG=ROOT/"master_registry.json";LIB=ROOT/"library.json";SET=ROOT/"artist_settings.json"
 OUTS={"TV":("Walking",(144,192)),"FG":("Face",(144,144)),"TVD":("Downed",(144,48)),"SV":("Battle",(576,384)),"Variation":("Preview",(64,64))}
 def load(p,d):
  try:return json.load(open(p,encoding="utf-8"))
