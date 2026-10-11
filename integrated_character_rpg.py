@@ -105,7 +105,8 @@ class CharacterBuilder(ttk.Frame):
    else:
     status=str(m.get("status","draft")).replace("_"," ").title()
     kind="Project Shonen • "+status
-   label=("✓ " if selected else "")+m.get("name","Body")+"\n"+kind
+   label=("✓ " if selected else "")+m.get("name","Body")+"
+"+kind
    ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=22).pack()
  def choose_body(self,name):
   if name==self.master_name.get():return
@@ -184,7 +185,9 @@ class CharacterBuilder(ttk.Frame):
    if self.compatible(a,m) and (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()):
     ready=[k for k in ("TV","FG","TVD","SV","Variation") if a.get("outputs",{}).get(k,{}).get("status")=="complete"]
     self.tree.insert("","end",iid=str(i),text=a.get("name",a["id"]),values=(a.get("category",""),"/".join(ready) if ready else "missing"));shown+=1
-  totalfield=sum(1 for a in self.lib["assets"] if (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()))\n  hidden=max(0,totalfield-shown)\n  self.countinfo.set((f"{shown} compatible piece"+("" if shown==1 else "s")+f" shown • {hidden} incompatible hidden") if shown or hidden else "No artwork in this field yet — create or import a reusable piece.")
+  totalfield=sum(1 for a in self.lib["assets"] if (self.category.get()=="All" or a.get("category","Other")==self.category.get()) and (not q or q in a.get("name","").lower() or q in a.get("category","").lower()))
+  hidden=max(0,totalfield-shown)
+  self.countinfo.set((f"{shown} compatible piece"+("" if shown==1 else "s")+f" shown • {hidden} incompatible hidden") if shown or hidden else "No artwork in this field yet — create or import a reusable piece.")
   counts={}
   for a in self.lib.get("assets",[]):
    if self.compatible(a,m):counts[a.get("category","Other")]=counts.get(a.get("category","Other"),0)+1
@@ -237,7 +240,9 @@ class CharacterBuilder(ttk.Frame):
   sel=self.tree.selection()
   if not sel:return
   a=self.lib["assets"][int(sel[0])];outs=[k for k,v in a.get("outputs",{}).items() if v.get("status")=="complete"]
-  c=a.get("compatibility") or {};scope=c.get("scope","Exact Body");fit=(" • "+scope) if scope else ""\n  if c.get("bust") not in (None,"Any","Not Applicable"):fit+=" • "+c.get("bust")+" bust"\n  self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+fit+" • outputs: "+(", ".join(outs) if outs else "none"))
+  c=a.get("compatibility") or {};scope=c.get("scope","Exact Body");fit=(" • "+scope) if scope else ""
+  if c.get("bust") not in (None,"Any","Not Applicable"):fit+=" • "+c.get("bust")+" bust"
+  self.pieceinfo.set(a.get("name",a.get("id",""))+" • "+a.get("category","Other")+fit+" • outputs: "+(", ".join(outs) if outs else "none"))
  def add(self,e=None):
   s=self.tree.selection()
   if not s:return
@@ -510,7 +515,8 @@ class TransferCenter(ttk.Frame):
    if good:report.extend([""]+["Imported: "+r.get("asset","Artwork")+" - "+r.get("output","") for r in good[:12]])
    if bad:report.extend(["","Needs attention:"]+[r.get("file","File")+": "+r.get("reason","Could not import.") for r in bad[:12]])
    if len(bad)>12:report.append(f"...and {len(bad)-12} more.")
-   self.status.set(report[0]);messagebox.showinfo("Artwork intake complete","\n".join(report))
+   self.status.set(report[0]);messagebox.showinfo("Artwork intake complete","
+".join(report))
   except Exception as e:messagebox.showerror("Artwork intake failed",str(e))
  def install_ready(self):
   q=Path(self.project.get())
