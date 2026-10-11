@@ -30,8 +30,13 @@ def evaluate(asset,masters):
     for mid,choice in matrix.items():
         if choice!="CUSTOM":continue
         m=byid.get(mid);name=m.get("name",mid) if m else mid;custom[mid]={}
+        variant=variants.get(mid) or {}; inherit=set(variant.get("_inherit") or [])
         for out in ORDER:
-            ok,why=_valid((variants.get(mid) or {}).get(out),out);custom[mid][out]=why
+            if out in inherit:
+                ok,why=_valid((asset.get("outputs") or {}).get(out),out);custom[mid][out]="inherited" if ok else "inherited "+why
+                if not ok:blockers.append({"kind":"primary","output":out,"reason":why,"requiredBy":name})
+                continue
+            ok,why=_valid(variant.get(out),out);custom[mid][out]=why
             if not ok:blockers.append({"kind":"custom","masterId":mid,"masterName":name,"output":out,"reason":why})
     state="Production Ready" if not blockers else ("Needs Artwork" if any(x["reason"]=="missing" for x in blockers) else "Needs Attention")
     return {"state":state,"primary":primary,"custom":custom,"blockers":blockers,"complete":not blockers}
