@@ -62,7 +62,26 @@ def new_master_dialog(parent,on_done=None):
  family.trace_add("write",auto);kind.trace_add("write",auto)
  ttk.Label(w,text="The creator will prepare TV, Face, TVD, SV and Preview master workspaces. Each begins as Draft and must be reviewed before it can be locked for production.",wraplength=530).pack(anchor="w",padx=18,pady=16)
  def create():
-  messagebox.showinfo("Body workspace","New body creation remains inside the packaged application; no external Python helper is required.")
-  w.destroy()
-  if on_done:on_done()
- ttk.Button(w,text="Continue to Master Artwork Setup",command=create).pack(pady=18)
+  n=name.get().strip()
+  if not n:messagebox.showerror("Missing name","Give this body master a display name.");return
+  if any(m.get("name","").lower()==n.lower() for m in data["masters"]):messagebox.showerror("Body already exists","A body master already uses this name.");return
+  slug=re.sub(r"[^A-Za-z0-9]+","_",n).strip("_") or "Custom_Body"
+  basekey=slug;used={m.get("key") for m in data["masters"]};i=2
+  while slug in used:slug=basekey+"_"+str(i);i+=1
+  nums=[]
+  for m in data["masters"]:
+   hit=re.search(r"(\\d+)$",str(m.get("id","")))
+   if hit:nums.append(int(hit.group(1)))
+  mid=f"PS-BODY-{max([3999]+nums)+1:05d}"
+  sizes={"TV":[144,192],"FG":[144,144],"TVD":[144,48],"SV":[576,384],"Variation":[64,64]}
+  outputs={k:{"size":v,"status":"draft","locked":False,"base":f"masters/{slug}/{k}/{mid}_{k}.png"} for k,v in sizes.items()}
+  master={"id":mid,"key":slug,"name":n,"family":family.get(),"bodyType":kind.get(),"status":"draft","source":"Project Shonen","outputs":outputs}
+  if ref.get()!="None":
+   rm=next((m for m in data["masters"] if m.get("name")==ref.get()),None)
+   if rm:master["referenceMasterId"]=rm.get("id")
+  data["masters"].append(master);save(REG,data);w.destroy()
+  if on_done:
+   try:on_done(master)
+   except TypeError:on_done()
+  messagebox.showinfo("Body master created",n+" is registered. Select it below and use Edit in Clip Studio Paint for each output.")
+ ttk.Button(w,text="Create Body Master",command=create).pack(pady=18)
