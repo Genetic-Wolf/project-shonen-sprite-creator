@@ -435,7 +435,7 @@ class TransferCenter(ttk.Frame):
   ttk.Button(pbox,text="Import Reusable Piece Package",command=self.import_package).pack(side="left",padx=4)
   b=ttk.LabelFrame(box,text="Clip Studio Paint",padding=12);b.pack(fill="x",pady=5)
   ttk.Button(b,text="Open Artist Workspace",command=self.open_workspace).pack(side="left",padx=4)
-  ttk.Button(b,text="Import Finished PNG",command=lambda:self.goto("pieces")).pack(side="left",padx=4)
+  ttk.Button(b,text="Import Finished PNG(s)",command=self.import_finished_pngs).pack(side="left",padx=4)
   ttk.Button(b,text="Create / Edit Reusable Piece",command=lambda:self.goto("pieces")).pack(side="left",padx=4)
   ttk.Label(self,textvariable=self.status,wraplength=900).pack(anchor="w",pady=12)
   ttk.Label(self,text="Transfers validate destinations and preserve RPG Maker files with timestamped backups before replacement.",wraplength=900).pack(anchor="w")
@@ -467,6 +467,19 @@ class TransferCenter(ttk.Frame):
    r=mz_generator_importer.import_generator_folder(p);self.status.set(f"Imported {r['filesImported']} files and registered {r['componentsAdded']} components; skipped {r['invalidPngsSkipped']} invalid PNGs.")
    messagebox.showinfo("Import complete",self.status.get())
   except Exception as e:messagebox.showerror("Import failed",str(e))
+ def import_finished_pngs(self):
+  paths=filedialog.askopenfilenames(title="Import finished Project Shonen artwork",filetypes=[("PNG artwork","*.png")])
+  if not paths:return
+  try:
+   import artwork_intake
+   results=artwork_intake.import_finished_pngs(paths)
+   good=[r for r in results if r.get("ok")];bad=[r for r in results if not r.get("ok")]
+   report=[f"Imported {len(good)} of {len(results)} artwork file(s)."]
+   if good:report.extend([""]+["Imported: "+r.get("asset","Artwork")+" - "+r.get("output","") for r in good[:12]])
+   if bad:report.extend(["","Needs attention:"]+[r.get("file","File")+": "+r.get("reason","Could not import.") for r in bad[:12]])
+   if len(bad)>12:report.append(f"...and {len(bad)-12} more.")
+   self.status.set(report[0]);messagebox.showinfo("Artwork intake complete","\\n".join(report))
+  except Exception as e:messagebox.showerror("Artwork intake failed",str(e))
  def install_ready(self):
   q=Path(self.project.get())
   if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Setup required","Connect a valid RPG Maker MZ project first.");return
