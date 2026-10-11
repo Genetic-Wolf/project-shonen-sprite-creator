@@ -105,8 +105,7 @@ class CharacterBuilder(ttk.Frame):
    else:
     status=str(m.get("status","draft")).replace("_"," ").title()
     kind="Project Shonen • "+status
-   label=("✓ " if selected else "")+m.get("name","Body")+"
-"+kind
+   label=("✓ " if selected else "")+m.get("name","Body")+chr(10)+kind
    ttk.Button(f,text=label,image=ph,compound="top",command=lambda x=m.get("name"):self.choose_body(x),width=22).pack()
  def choose_body(self,name):
   if name==self.master_name.get():return
