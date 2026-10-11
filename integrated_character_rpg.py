@@ -422,7 +422,7 @@ class TransferCenter(ttk.Frame):
   paths=ttk.LabelFrame(self,text="Connected Programs",padding=10);paths.pack(fill="x",pady=(0,10))
   self.project=tk.StringVar(value=self.cfg.get("rpgMakerProject",""));self.csp=tk.StringVar(value=self.cfg.get("clipStudio",""))
   ttk.Label(paths,text="RPG Maker MZ Project").grid(row=0,column=0,sticky="w");ttk.Entry(paths,textvariable=self.project,width=70).grid(row=0,column=1,sticky="ew",padx=6);ttk.Button(paths,text="Choose",command=self.choose_project).grid(row=0,column=2)
-  ttk.Label(paths,text="Clip Studio Paint").grid(row=1,column=0,sticky="w",pady=5);ttk.Entry(paths,textvariable=self.csp,width=70).grid(row=1,column=1,sticky="ew",padx=6);ttk.Button(paths,text="Choose",command=self.choose_csp).grid(row=1,column=2)
+  ttk.Label(paths,text="Clip Studio Paint").grid(row=1,column=0,sticky="w",pady=5);ttk.Entry(paths,textvariable=self.csp,width=70).grid(row=1,column=1,sticky="ew",padx=6);ttk.Button(paths,text="Choose",command=self.choose_csp).grid(row=1,column=2);ttk.Button(paths,text="Test",command=self.test_csp).grid(row=1,column=3,padx=(5,0))
   paths.columnconfigure(1,weight=1)
   box=ttk.Frame(self);box.pack(fill="both",expand=True)
   a=ttk.LabelFrame(box,text="RPG Maker MZ",padding=12);a.pack(fill="x",pady=5)
@@ -451,6 +451,12 @@ class TransferCenter(ttk.Frame):
  def choose_csp(self):
   p=filedialog.askopenfilename(title="Choose Clip Studio Paint",filetypes=[("Windows program","*.exe"),("All files","*.*")])
   if p:self.csp.set(p);self.persist();self.status.set("Clip Studio Paint connected.")
+ def test_csp(self):
+  p=Path(self.csp.get()) if self.csp.get() else None
+  if not p or not p.exists():messagebox.showerror("Clip Studio Paint not found","Choose the Clip Studio Paint program again.");return
+  try:
+   subprocess.Popen([str(p)]);self.status.set("Clip Studio Paint connection verified and launched.")
+  except Exception as e:messagebox.showerror("Could not launch Clip Studio Paint",str(e))
  def import_generator(self):
   p=filedialog.askopenfilename(title="Select RPG Maker MZ generator ZIP",filetypes=[("ZIP archive","*.zip")])
   if not p:return
