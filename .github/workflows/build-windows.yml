@@ -33,6 +33,8 @@ jobs:
         run: python test_piece_lifecycle.py
       - name: Continuous artist workflow regression
         run: python test_continuous_artist_workflow.py
+      - name: Visual production dashboard regression
+        run: python test_production_dashboard.py
       - name: Source self-test
         env:
           PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenSourceTest
