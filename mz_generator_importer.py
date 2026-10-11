@@ -136,4 +136,15 @@ def _register_existing(dest,valid=0,invalid=0):
   elif aid not in byid:
    assets.append(record);byid[aid]=record;added+=1
  _save(libp,lib)
- return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"drawableFilesRegistered":art_files,"colorMaskFilesRegistered":mask_files,"destination":str(dest)}
+ # Imported library invariants: masks never enter drawable paths/layers and every visible
+ # layer is explicitly tagged art. This also repairs older local registrations on refresh.
+ invariant_errors=[]
+ for a in assets:
+  if not str(a.get("source","")).startswith("RPG Maker MZ"):continue
+  for rep,o in a.get("outputs",{}).items():
+   draw={x.get("path") for x in o.get("layers",[]) if x.get("role","art")=="art"}
+   masks={x.get("path") for x in o.get("masks",[])}
+   if draw & masks:invariant_errors.append(a.get("id","?")+" "+rep+" mask/draw overlap")
+   if any(x.get("role","art")!="art" for x in o.get("layers",[])):invariant_errors.append(a.get("id","?")+" "+rep+" non-art render layer")
+ if invariant_errors:raise ValueError("Imported RPG Maker library failed render-safety validation: "+"; ".join(invariant_errors[:8]))
+ return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"drawableFilesRegistered":art_files,"colorMaskFilesRegistered":mask_files,"renderSafetyValidated":True,"destination":str(dest)}
