@@ -12,7 +12,10 @@ with tempfile.TemporaryDirectory() as td:
  r=p.evaluate(asset,masters);assert r["state"]=="Needs Artwork";assert len(r["blockers"])==10
  for out,size in p.OUTPUTS.items():asset["outputs"][out]={"status":"complete","path":png("p_"+out+".png",size)}
  r=p.evaluate(asset,masters);assert len(r["blockers"])==5 and p.next_job(asset,masters)["kind"]=="custom"
- for out,size in p.OUTPUTS.items():asset["variants"]["B2"][out]={"status":"complete","path":png("v_"+out+".png",size)}
+ asset["variants"]["B2"]["_inherit"]=["FG","TVD","SV","Variation"]
+ r=p.evaluate(asset,masters);assert len(r["blockers"])==1 and r["custom"]["B2"]["FG"]=="inherited"
+ for out,size in p.OUTPUTS.items():
+  if out not in asset["variants"]["B2"]["_inherit"]:asset["variants"]["B2"][out]={"status":"complete","path":png("v_"+out+".png",size)}
  r=p.evaluate(asset,masters);assert r["complete"] and r["state"]=="Production Ready" and p.next_job(asset,masters) is None
  asset["variants"]["B2"]["TV"]["path"]="assets/missing.png";r=p.evaluate(asset,masters);assert r["state"]=="Needs Attention"
 print("Production pipeline regression: OK")
