@@ -170,7 +170,11 @@ class CharacterBuilder(ttk.Frame):
   if explicit=="NO":return False
   if explicit=="CUSTOM":
    variants=(a.get("variants") or {}).get(m.get("id"),{})
-   return any(v.get("status")=="complete" and v.get("path") for v in variants.values())
+   inherit=set(variants.get("_inherit") or [])
+   for out in ("TV","FG","TVD","SV","Variation"):
+    v=variants.get(out,{})
+    if out not in inherit and not (v.get("status")=="complete" and v.get("path")):return False
+   return True
   scope=c.get("scope")
   if not scope:return a.get("body")==m.get("key") or a.get("masterId")==m.get("id")
   if scope=="Universal":return True
@@ -337,7 +341,9 @@ class CharacterBuilder(ttk.Frame):
   for order,i in enumerate(self.selected):
    a=self.lib["assets"][i];o=a.get("outputs",{}).get(out,{})
    choice=((a.get("compatibility") or {}).get("matrix") or {}).get(m.get("id"))
-   if choice=="CUSTOM":o=(a.get("variants") or {}).get(m.get("id"),{}).get(out,{})
+   if choice=="CUSTOM":
+    variant=(a.get("variants") or {}).get(m.get("id"),{})
+    if out not in set(variant.get("_inherit") or []):o=variant.get(out,{})
    if o.get("status")!="complete" or not o.get("path"):missing.append(f'{a["name"]} ({out})');continue
    layers=o.get("layers")
    if layers:
