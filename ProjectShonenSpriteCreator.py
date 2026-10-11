@@ -28,7 +28,8 @@ class App(tk.Tk):
   self.clear()
   if k=="gallery":
    self.heading("Art Library","Your working visual library. Imported RPG Maker references and Project Shonen artwork appear here together for browsing.")
-   integrated_editors.LibraryGallery(self.content,"pieces").pack(fill="both",expand=True)
+   def continue_piece(asset_id):self.page("pieces",select_asset_id=asset_id,auto_continue=True)
+   integrated_editors.LibraryGallery(self.content,"pieces",on_continue=continue_piece).pack(fill="both",expand=True)
   elif k=="pieces":
    self.heading("Create Piece","Draw a new hairstyle, face feature, outfit, armor piece, weapon or accessory against the selected body.")
    def created(asset=None):
