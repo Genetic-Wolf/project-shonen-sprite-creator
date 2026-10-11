@@ -535,22 +535,14 @@ class TransferCenter(ttk.Frame):
   except Exception as e:messagebox.showerror("Artwork intake failed",str(e))
  def install_ready(self):
   q=Path(self.project.get())
-  if not (q/"img").exists() or not (q/"data").exists():messagebox.showerror("Setup required","Connect a valid RPG Maker MZ project first.");return
-  staged=sum(len(list((ROOT/"exports"/typ).glob("*.png"))) for typ in DEST if (ROOT/"exports"/typ).exists())
-  if not staged:messagebox.showinfo("Nothing to transfer","No exported character graphics are staged yet. Export a character first.");return
-  if not messagebox.askyesno("Export to RPG Maker MZ",f"Install {staged} staged graphics into the connected RPG Maker MZ project? Existing same-name files will be backed up first."):return
-  stamp=time.strftime("%Y%m%d-%H%M%S");bak=ROOT/"backups"/stamp;installed=backed=0
-  for typ,dest in DEST.items():
-   src=ROOT/"exports"/typ
-   if not src.exists():continue
-   dd=q/dest;dd.mkdir(parents=True,exist_ok=True)
-   for p in src.glob("*.png"):
-    target=dd/p.name
-    if target.exists():
-     bd=bak/dest;bd.mkdir(parents=True,exist_ok=True);shutil.copy2(target,bd/p.name);backed+=1
-    shutil.copy2(p,target);installed+=1
-  self.status.set(f"Transfer complete: {installed} installed, {backed} replaced files backed up.")
-  messagebox.showinfo("Transfer complete",self.status.get())
+  if not mz_export.validate_project(q):messagebox.showerror("Setup required","Connect a valid RPG Maker MZ project first.");return
+  rows=mz_export.staged_files(ROOT)
+  if not rows:messagebox.showinfo("Nothing to transfer","No exported character graphics are staged yet. Export a character first.");return
+  if not messagebox.askyesno("Export to RPG Maker MZ","Install "+str(len(rows))+" staged graphics into the connected RPG Maker MZ project? Existing same-name files will be backed up first."):return
+  try:r=mz_export.install(ROOT,q)
+  except Exception as e:messagebox.showerror("Transfer failed",str(e));return
+  self.status.set("Transfer complete: "+str(r["installed"])+" installed, "+str(r["backedUp"])+" replaced files backed up.")
+  messagebox.showinfo("Transfer complete",self.status.get()+chr(10)+chr(10)+"An installation manifest was saved with the staged exports.")
  def open_project(self):
   q=Path(self.project.get())
   if not q.exists():messagebox.showerror("Project not connected","Choose the RPG Maker MZ project first.");return
