@@ -24,15 +24,17 @@ class App(tk.Tk):
   for w in self.content.winfo_children():w.destroy()
  def heading(self,a,b):
   ttk.Label(self.content,text=a,font=("TkDefaultFont",16,"bold")).pack(anchor="w");ttk.Label(self.content,text=b,wraplength=900).pack(anchor="w",pady=(2,10))
- def page(self,k):
+ def page(self,k,select_asset_id=None,auto_continue=False):
   self.clear()
   if k=="gallery":
    self.heading("Art Library","Your working visual library. Imported RPG Maker references and Project Shonen artwork appear here together for browsing.")
    integrated_editors.LibraryGallery(self.content,"pieces").pack(fill="both",expand=True)
   elif k=="pieces":
    self.heading("Create Piece","Draw a new hairstyle, face feature, outfit, armor piece, weapon or accessory against the selected body.")
-   ttk.Button(self.content,text="+ New Reusable Piece",command=lambda:embedded_workflows.new_piece_dialog(self,lambda:self.page("pieces"))).pack(anchor="w",pady=(0,6))
-   integrated_editors.PieceEditor(self.content).pack(fill="both",expand=True)
+   def created(asset=None):
+    self.page("pieces",select_asset_id=(asset or {}).get("id"),auto_continue=bool(asset))
+   ttk.Button(self.content,text="+ New Reusable Piece",command=lambda:embedded_workflows.new_piece_dialog(self,created)).pack(anchor="w",pady=(0,6))
+   integrated_editors.PieceEditor(self.content,select_asset_id=select_asset_id,auto_continue=auto_continue).pack(fill="both",expand=True)
   elif k=="masters":
    self.heading("Body","Choose and maintain the body bases that all character artwork is aligned to. Imported RPG Maker bodies appear here automatically.")
    ttk.Button(self.content,text="+ New Body Master",command=lambda:embedded_workflows.new_master_dialog(self,lambda:self.page("masters"))).pack(anchor="w",pady=(0,6))
