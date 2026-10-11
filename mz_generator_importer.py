@@ -114,7 +114,7 @@ def _register_existing(dest,valid=0,invalid=0):
     if not m:continue
     _,cat,layer,pid=m.groups()
     if cat.lower()=="body":continue
-    role="colorMask" if rep in ("TV","TVD","SV") and re.search(r"_c(?:\\.|_)",f.name,re.I) else "art"
+    role="colorMask" if rep in ("TV","TVD","SV") and re.search(r"_c(?:\\.|_|$)",f.stem,re.I) else "art"
     if role=="art":art_files+=1
     else:mask_files+=1
     groups.setdefault((sex,cat,int(pid)),{}).setdefault(rep,[]).append((_rel(f),int(layer or 0),f.name,role))
