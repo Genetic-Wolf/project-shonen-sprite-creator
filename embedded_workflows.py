@@ -46,9 +46,12 @@ def new_piece_dialog(parent,on_done=None,preferred_body=None,preferred_category=
   master=next(m for m in data["masters"] if m["name"]==body.get())
   a={"id":aid,"name":n,"category":CATKEY[cat.get()],"body":master["key"],"masterId":master["id"],
      "outputs":{k:{"status":"missing","path":None} for k in ["TV","FG","TVD","SV","Variation"]}}
+  a["status"]="draft"
   lib["assets"].append(a);save(LIB,lib);w.destroy()
-  if on_done:on_done()
-  messagebox.showinfo("Artwork created","The new reusable piece is registered. Open Create Piece to create/edit its workspace or import finished artwork.")
+  if on_done:
+   try:on_done(a)
+   except TypeError:on_done()
+  messagebox.showinfo("Artwork created","The new reusable piece is registered and ready for its first artwork workspace.")
  ttk.Button(w,text="Create Artwork",command=create).pack(pady=18)
 
 def new_master_dialog(parent,on_done=None):
