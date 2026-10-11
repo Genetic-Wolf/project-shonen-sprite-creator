@@ -70,6 +70,7 @@ class PieceEditor(ttk.Frame):
   self.name=tk.StringVar(value="Select a reusable piece");ttk.Label(r,textvariable=self.name,font=("TkDefaultFont",13,"bold")).pack(anchor="w")
   actions=ttk.Frame(r);actions.pack(fill="x",pady=(4,2))
   ttk.Button(actions,text="Import Artwork",command=self.smart_import).pack(side="left")
+  ttk.Button(actions,text="Compatibility Matrix",command=self.compatibility_matrix).pack(side="left",padx=5)
   ttk.Label(actions,text="Automatically validates and routes PNG artwork to the selected piece.",wraplength=430).pack(side="left",padx=8)
   self.cards=ttk.Frame(r);self.cards.pack(fill="x",pady=8);self.status={}
   for k,(label,size) in OUTS.items():
@@ -125,6 +126,29 @@ class PieceEditor(ttk.Frame):
    exe=Path(chosen);cfg["clipStudio"]=str(exe);save(SET,cfg)
   try:subprocess.Popen([str(exe),str(path)])
   except Exception as e:messagebox.showerror("Could not open Clip Studio Paint",str(e))
+ def compatibility_matrix(self):
+  a=self.asset()
+  if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
+  w=tk.Toplevel(self);w.title("Compatibility Matrix — "+a.get("name",a.get("id","Piece")));w.geometry("720x620");w.transient(self.winfo_toplevel());w.grab_set()
+  ttk.Label(w,text="Body Compatibility Matrix",font=("TkDefaultFont",14,"bold")).pack(anchor="w",padx=14,pady=(14,4))
+  ttk.Label(w,text="YES = use this artwork directly. CUSTOM = this body needs its own fitted variant. NO = do not offer this piece for that body. Explicit choices override the broader compatibility rule.",wraplength=680).pack(anchor="w",padx=14,pady=(0,10))
+  cv=tk.Canvas(w,highlightthickness=0);sb=ttk.Scrollbar(w,orient="vertical",command=cv.yview);inner=ttk.Frame(cv);cv.create_window((0,0),window=inner,anchor="nw");cv.configure(yscrollcommand=sb.set);inner.bind("<Configure>",lambda e:cv.configure(scrollregion=cv.bbox("all")));cv.pack(side="left",fill="both",expand=True,padx=(14,0));sb.pack(side="right",fill="y",padx=(0,14))
+  matrix=(a.get("compatibility") or {}).get("matrix") or {};vars={}
+  home=a.get("masterId")
+  for row,m in enumerate(self.reg.get("masters",[])):
+   ttk.Label(inner,text=m.get("name","Body"),width=28).grid(row=row,column=0,sticky="w",padx=4,pady=4)
+   detail=m.get("family","")+" / "+m.get("bodyType","")
+   if m.get("family")=="Female":detail+=" / "+m.get("bust","Unspecified")
+   ttk.Label(inner,text=detail,width=30).grid(row=row,column=1,sticky="w",padx=4)
+   default=matrix.get(m.get("id"))
+   if not default:default="YES" if m.get("id")==home else "NO"
+   v=tk.StringVar(value=default);vars[m.get("id")]=v
+   ttk.Combobox(inner,textvariable=v,values=["YES","CUSTOM","NO"],state="readonly",width=10).grid(row=row,column=2,padx=4)
+  def apply():
+   c=a.setdefault("compatibility",{})
+   c["matrix"]={mid:v.get() for mid,v in vars.items()}
+   save(LIB,self.lib);w.destroy();messagebox.showinfo("Compatibility saved","Body compatibility choices were saved for "+a.get("name","this piece")+".")
+  ttk.Button(inner,text="Save Compatibility Matrix",command=apply).grid(row=len(vars)+1,column=0,columnspan=3,pady=16)
  def smart_import(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select the reusable piece this artwork belongs to first.");return
