@@ -19,6 +19,8 @@ a={"body":"Other","masterId":"OTHER","compatibility":{"scope":"Universal","matri
 assert compatible(d,a,m) is False
 a["compatibility"]["matrix"]["B-FS"]="CUSTOM"
 assert compatible(d,a,m) is False
+a["variants"]={"B-FS":{"TV":{"status":"complete","path":"assets/variants/test.png"}}}
+assert compatible(d,a,m) is True
 a["compatibility"]["matrix"]["B-FS"]="YES"
 assert compatible(d,a,m) is True
 fam={"body":"Other","masterId":"OTHER","compatibility":{"scope":"Family Compatible","family":"Female","bust":"Medium"}}
