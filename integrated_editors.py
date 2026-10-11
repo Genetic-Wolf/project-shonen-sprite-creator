@@ -4,6 +4,7 @@ from pathlib import Path
 import app_paths
 from PIL import Image,ImageTk,ImageDraw
 import json,shutil,os,zipfile,subprocess,xml.etree.ElementTree as ET
+import production_pipeline
 ROOT=app_paths.DATA_ROOT
 RESOURCE_ROOT=app_paths.RESOURCE_ROOT
 app_paths.bootstrap()
@@ -71,6 +72,8 @@ class PieceEditor(ttk.Frame):
   actions=ttk.Frame(r);actions.pack(fill="x",pady=(4,2))
   ttk.Button(actions,text="Import Artwork",command=self.smart_import).pack(side="left")
   ttk.Button(actions,text="Compatibility Matrix",command=self.compatibility_matrix).pack(side="left",padx=5)
+  ttk.Button(actions,text="Production Dashboard",command=self.production_dashboard).pack(side="left",padx=5)
+  ttk.Button(actions,text="Continue Artwork",command=self.continue_artwork).pack(side="left",padx=5)
   ttk.Label(actions,text="Automatically validates and routes PNG artwork to the selected piece.",wraplength=430).pack(side="left",padx=8)
   self.cards=ttk.Frame(r);self.cards.pack(fill="x",pady=8);self.status={}
   for k,(label,size) in OUTS.items():
@@ -79,6 +82,7 @@ class PieceEditor(ttk.Frame):
    ttk.Button(f,text="Edit in Clip Studio Paint",command=lambda x=k:self.workspace(x)).pack(side="left",padx=3)
    ttk.Button(f,text="Import PNG",command=lambda x=k:self.importpng(x)).pack(side="left",padx=3)
    ttk.Button(f,text="Open Artwork",command=lambda x=k:self.openart(x)).pack(side="right")
+  self.production=tk.StringVar(value="Production: choose a reusable piece");ttk.Label(r,textvariable=self.production).pack(anchor="w",pady=(2,4))
   self.preview=tk.Canvas(r,width=360,height=260,bg="#30343b",highlightthickness=0);self.preview.pack(fill="both",expand=True)
  def asset(self):
   return self.lib["assets"][self.current] if self.current is not None else None
@@ -89,6 +93,7 @@ class PieceEditor(ttk.Frame):
   for k in OUTS:
    o=a.get("outputs",{}).get(k,{})
    self.status[k].set("✓ COMPLETE" if o.get("status")=="complete" and o.get("path") else "— MISSING")
+  self.production.set("Production: "+production_pipeline.evaluate(a,self.reg.get("masters",[]))["state"])
  def master(self,a):
   return next((m for m in self.reg["masters"] if m.get("id")==a.get("masterId") or m.get("key")==a.get("body")),None)
  def workspace(self,out):
@@ -126,6 +131,28 @@ class PieceEditor(ttk.Frame):
    exe=Path(chosen);cfg["clipStudio"]=str(exe);save(SET,cfg)
   try:subprocess.Popen([str(exe),str(path)])
   except Exception as e:messagebox.showerror("Could not open Clip Studio Paint",str(e))
+ def production_dashboard(self):
+  a=self.asset()
+  if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
+  report=production_pipeline.evaluate(a,self.reg.get("masters",[]))
+  lines=["Production status: "+report["state"],"","Primary artwork:"]
+  for out in production_pipeline.ORDER:lines.append(OUTS[out][0]+": "+report["primary"][out])
+  if report["custom"]:
+   names={m.get("id"):m.get("name",m.get("id")) for m in self.reg.get("masters",[])};lines+=["","Custom body variants:"]
+   for mid,vals in report["custom"].items():
+    lines.append(names.get(mid,mid))
+    for out in production_pipeline.ORDER:lines.append("  "+OUTS[out][0]+": "+vals[out])
+  lines+=["",("All required artwork is complete and validated." if report["complete"] else str(len(report["blockers"]))+" production requirement(s) still need attention.")]
+  messagebox.showinfo("Production Dashboard - "+a.get("name","Piece"),chr(10).join(lines))
+ def continue_artwork(self):
+  a=self.asset()
+  if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
+  job=production_pipeline.next_job(a,self.reg.get("masters",[]))
+  if not job:messagebox.showinfo("Production Ready",a.get("name","This piece")+" has all required artwork.");return
+  if job["kind"]=="primary":self.workspace(job["output"]);return
+  m=next((x for x in self.reg.get("masters",[]) if x.get("id")==job.get("masterId")),None)
+  if not m:messagebox.showerror("Missing body master","The custom variant references a body master that is no longer registered.");return
+  self.variant_workspace(a,m,focus_output=job["output"])
  def compatibility_matrix(self):
   a=self.asset()
   if not a:messagebox.showinfo("Choose a piece","Select a reusable piece first.");return
@@ -153,11 +180,12 @@ class PieceEditor(ttk.Frame):
    c["matrix"]={mid:v.get() for mid,v in vars.items()}
    save(LIB,self.lib);w.destroy();messagebox.showinfo("Compatibility saved","Body compatibility choices were saved for "+a.get("name","this piece")+".")
   ttk.Button(inner,text="Save Compatibility Matrix",command=apply).grid(row=len(vars)+1,column=0,columnspan=3,pady=16)
- def variant_workspace(self,a,m):
+ def variant_workspace(self,a,m,focus_output=None):
   w=tk.Toplevel(self);w.title("Custom Variant — "+a.get("name","Piece")+" / "+m.get("name","Body"));w.geometry("650x520");w.transient(self.winfo_toplevel())
   ttk.Label(w,text="Custom fitted artwork",font=("TkDefaultFont",13,"bold")).pack(anchor="w",padx=14,pady=(14,4))
   ttk.Label(w,text="This keeps one reusable-piece identity while storing body-specific artwork for "+m.get("name","this body")+".",wraplength=610).pack(anchor="w",padx=14,pady=(0,10))
   variants=a.setdefault("variants",{}).setdefault(m.get("id"),{})
+  if focus_output:ttk.Label(w,text="Next required artwork: "+OUTS[focus_output][0]).pack(anchor="w",padx=14,pady=(0,6))
   for out,(label,size) in OUTS.items():
    row=ttk.Frame(w);row.pack(fill="x",padx=14,pady=3);v=variants.get(out,{})
    ttk.Label(row,text=label,width=12).pack(side="left");ttk.Label(row,text=("COMPLETE" if v.get("status")=="complete" else "MISSING"),width=12).pack(side="left")
