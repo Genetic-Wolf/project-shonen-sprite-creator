@@ -35,6 +35,8 @@ lib1=json.loads((app_paths.DATA_ROOT/"library.json").read_text(encoding="utf-8")
 reg1=json.loads((app_paths.DATA_ROOT/"master_registry.json").read_text(encoding="utf-8"))
 ids1=[a.get("id") for a in lib1.get("assets",[])]
 assert r1["renderSafetyValidated"] is True
+assert r1["nativeFormatValidated"] is True
+assert [144,144] in r1["nativeFormatAudit"]["faceSizes"]
 assert len([m for m in reg1["masters"] if str(m.get("id","")).startswith("PS-MZ-")])==3
 assert len(ids1)==len(set(ids1))
 for sex in ("FEMALE","MALE","KID"):
@@ -54,4 +56,5 @@ assert ids2==ids1, "refresh changed or duplicated component identities"
 assert len(reg2["masters"])==len(reg1["masters"]), "refresh duplicated masters"
 assert r2["componentsAdded"]==0 and r2["mastersAdded"]==0
 assert r2["renderSafetyValidated"] is True
+assert r2["nativeFormatValidated"] is True
 print("MZ IMPORT INTEGRATION: PASS")
