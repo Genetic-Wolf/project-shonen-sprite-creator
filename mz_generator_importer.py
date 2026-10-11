@@ -121,7 +121,7 @@ def _register_existing(dest,valid=0,invalid=0):
   aid=f"MZ-{sex.upper()}-{cat.upper()}-{pid:03d}";outputs={}
   for rep,entries in reps.items():
    ordered=sorted(entries,key=lambda x:(x[1],x[2]))
-   art=[x for x in ordered if x[3]=="art"];masks=[x for x in ordered if x[3]=="mask"]
+   art=[x for x in ordered if x[3]=="art"];masks=[x for x in ordered if x[3]=="colorMask"]
    # MZ TV/TVD/SV *_c files are color-mask companions. Preserve them for recoloring,
    # but never expose them to the character compositor as visible artwork.
    if not art:continue
@@ -134,4 +134,4 @@ def _register_existing(dest,valid=0,invalid=0):
   elif aid not in byid:
    assets.append(record);byid[aid]=record;added+=1
  _save(libp,lib)
- return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"destination":str(dest)}
+ return {"filesImported":valid,"invalidPngsSkipped":invalid,"componentsAdded":added,"componentsUpdated":updated,"componentGroupsFound":len(groups),"mastersAdded":masters_added,"mastersUpdated":masters_updated,"drawableFilesRegistered":art_files,"colorMaskFilesRegistered":mask_files,"destination":str(dest)}
