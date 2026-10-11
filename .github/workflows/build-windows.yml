@@ -27,6 +27,8 @@ jobs:
         run: python test_compatibility_matrix.py
       - name: Production pipeline regression
         run: python test_production_pipeline.py
+      - name: Body master workflow regression
+        run: python test_body_master_workflow.py
       - name: Source self-test
         env:
           PROJECT_SHONEN_DATA: ${{ runner.temp }}\ProjectShonenSourceTest
