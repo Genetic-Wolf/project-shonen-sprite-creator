@@ -21,7 +21,8 @@ def _add(files,seen,rel,arc):
  p=app_paths.resolve(rel)
  if not p.exists():raise ValueError("Required artwork is missing: "+str(rel))
  key=str(p.resolve())
- if key not in seen:files.append((p,arc));seen.add(key)
+ if key in seen:return seen[key]
+ files.append((p,arc));seen[key]=arc
  return arc
 def _portable_output(o,rep,prefix,files,seen):
  x=copy.deepcopy(o);paths=x.get("paths") or ([x.get("path")] if x.get("path") else []);new=[]
@@ -41,7 +42,7 @@ def export_piece(asset_id,destination):
  lib=_load();asset=next((a for a in lib.get("assets",[]) if a.get("id")==asset_id),None)
  if not asset:raise ValueError("Reusable piece was not found.")
  if str(asset.get("source","")).startswith("RPG Maker MZ"):raise ValueError("Imported RPG Maker MZ stock artwork cannot be exported as a Project Shonen asset package.")
- files=[];seen=set();pack=copy.deepcopy(asset)
+ files=[];seen={};pack=copy.deepcopy(asset)
  pack["outputs"]={rep:_portable_output(o,rep,"artwork/primary",files,seen) for rep,o in pack.get("outputs",{}).items()}
  variants={}
  for mid,v in pack.get("variants",{}).items():
