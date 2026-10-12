@@ -88,8 +88,12 @@ def _restore_output(z,o,rep,base):
  if x.get("masks"):
   for y in x["masks"]:y["path"]=restore(y.get("path"),"masks")
  return x
-def import_piece(package,replace=False):
- m=inspect_package(package);a=copy.deepcopy(m["asset"]);lib=_load();existing=next((x for x in lib.get("assets",[]) if x.get("id")==a["id"]),None)
+def import_piece(package,replace=False,new_id=None):
+ m=inspect_package(package);a=copy.deepcopy(m["asset"]);lib=_load();original_id=a["id"]
+ if new_id:
+  if any(x.get("id")==new_id for x in lib.get("assets",[])):raise FileExistsError("Asset ID "+new_id+" already exists.")
+  a["id"]=new_id
+ existing=next((x for x in lib.get("assets",[]) if x.get("id")==a["id"]),None)
  if existing and not replace:raise FileExistsError("Asset ID "+a["id"]+" already exists.")
  base=app_paths.DATA_ROOT/"assets"/"imported_packages"/a["id"];stage=base.with_name(base.name+".incoming");shutil.rmtree(stage,ignore_errors=True);stage.mkdir(parents=True)
  try:
@@ -118,4 +122,4 @@ def import_piece(package,replace=False):
   shutil.rmtree(stage,ignore_errors=True);raise
  if existing:lib["assets"].remove(existing)
  a["source"]="Project Shonen portable package";lib.setdefault("assets",[]).append(a);_save(lib)
- return {"id":a["id"],"name":a["name"],"replaced":bool(existing),"schemaVersion":int(m.get("schemaVersion",1))}
+ return {"id":a["id"],"originalId":original_id,"name":a["name"],"replaced":bool(existing),"copied":bool(new_id),"schemaVersion":int(m.get("schemaVersion",1))}
