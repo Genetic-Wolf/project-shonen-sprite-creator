@@ -37,6 +37,13 @@ def _portable_output(o,rep,prefix,files,seen):
  for n,mask in enumerate(x.get("masks") or []):
   y=copy.deepcopy(mask);rel=y.get("path");p=app_paths.resolve(rel);arc=prefix+"/"+rep+"/masks/"+f"{n:02d}_"+p.name;y["path"]=_add(files,seen,rel,arc);masks.append(y)
  if masks:x["masks"]=masks
+ icon=x.get("icon")
+ if icon:
+  p=app_paths.resolve(icon);x["icon"]=_add(files,seen,icon,prefix+"/"+rep+"/icon/"+p.name)
+ source=x.get("sourceWorkspace")
+ if source:
+  p=app_paths.resolve(source)
+  if p.exists():x["sourceWorkspace"]=_add(files,seen,source,prefix+"/"+rep+"/source/"+p.name)
  return x
 def export_piece(asset_id,destination):
  lib=_load();asset=next((a for a in lib.get("assets",[]) if a.get("id")==asset_id),None)
@@ -87,6 +94,11 @@ def _restore_output(z,o,rep,base):
   for y in x["layers"]:y["path"]=restore(y.get("path"),"layers")
  if x.get("masks"):
   for y in x["masks"]:y["path"]=restore(y.get("path"),"masks")
+ if x.get("icon"):x["icon"]=restore(x.get("icon"),"icon")
+ if x.get("sourceWorkspace"):
+  arc=x.get("sourceWorkspace")
+  if not _safe_member(arc) or arc not in z.namelist():raise ValueError("Package source workspace is missing: "+str(arc))
+  data=z.read(arc);target=base/"source"/rep/Path(arc).name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data);x["sourceWorkspace"]=str(target.relative_to(app_paths.DATA_ROOT)).replace("\\\\","/")
  return x
 def import_piece(package,replace=False,new_id=None):
  m=inspect_package(package);a=copy.deepcopy(m["asset"]);lib=_load();original_id=a["id"]
