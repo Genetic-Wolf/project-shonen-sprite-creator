@@ -124,7 +124,7 @@ def import_piece(package,replace=False,new_id=None):
   def fix(v):
    if isinstance(v,dict):
     for k,x in list(v.items()):
-     if k in ("path","paths") and isinstance(x,str):v[k]=x.replace(a["id"]+".incoming",a["id"])
+     if k in ("path","icon","sourceWorkspace") and isinstance(x,str):v[k]=x.replace(a["id"]+".incoming",a["id"])
      elif k=="paths" and isinstance(x,list):v[k]=[y.replace(a["id"]+".incoming",a["id"]) for y in x]
      else:fix(x)
    elif isinstance(v,list):
