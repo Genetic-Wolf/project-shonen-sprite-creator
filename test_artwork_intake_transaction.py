@@ -28,5 +28,6 @@ r=a.import_finished_pngs([jp]);assert len(r)==1 and not r[0]["ok"] and "genuine 
 # Even registered IDs are untrusted input; reject traversal before constructing a destination.
 unsafe=json.loads(a.LIB.read_text());unsafe["assets"][0]["id"]="../escape";a.LIB.write_text(json.dumps(unsafe))
 (fake/"project_shonen_artwork.json").write_text((tv.parent/"project_shonen_artwork.json").read_text().replace('"A1"','"../escape"'))
-r=a.import_finished_pngs([jp]);assert len(r)==1 and not r[0]["ok"]
+Image.new("RGBA",a.OUTS["TV"],(20,30,40,128)).save(jp,format="PNG")
+r=a.import_finished_pngs([jp]);assert len(r)==1 and not r[0]["ok"] and "unsafe" in r[0]["reason"]
 print("MANAGED ARTWORK INTAKE: PASS")
