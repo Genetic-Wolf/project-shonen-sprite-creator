@@ -37,6 +37,8 @@ jobs:
         run: python test_production_dashboard.py
       - name: MZ export deployment regression
         run: python test_mz_export_deployment.py
+      - name: Portable asset package regression
+        run: python test_asset_package_portability.py
       - name: Portable asset round-trip regression
         run: python test_asset_package_roundtrip.py
       - name: Managed artwork intake transaction regression
