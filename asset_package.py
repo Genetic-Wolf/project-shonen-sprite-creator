@@ -1,9 +1,14 @@
 from pathlib import Path
-import copy,json,zipfile,hashlib,time,io,shutil
+import copy,json,zipfile,hashlib,time,io,shutil,re
 from PIL import Image
 import app_paths
 
 LIB=app_paths.DATA_ROOT/"library.json";EXT=".psasset";SCHEMA=2
+_ID_RE=re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+def _valid_id(value):
+ if not isinstance(value,str) or not _ID_RE.fullmatch(value):
+  raise ValueError("Asset ID must contain only letters, numbers, underscores or hyphens (1-128 characters).")
+ return value
 
 def _load():
  try:return json.loads(LIB.read_text(encoding="utf-8"))
@@ -14,7 +19,8 @@ def _safe_member(name):
  p=Path(name);return bool(name) and not p.is_absolute() and ".." not in p.parts
 def _png(data,arc):
  try:
-  im=Image.open(io.BytesIO(data));size=im.size;im.verify();return size
+  im=Image.open(io.BytesIO(data));size=im.size;im.verify();if im.format!="PNG":raise ValueError("Artwork must be PNG: "+arc)
+  return size
  except Exception:raise ValueError("Invalid PNG in package: "+arc)
 def _add(files,seen,rel,arc):
  if not rel:return None
@@ -48,6 +54,7 @@ def _portable_output(o,rep,prefix,files,seen):
 def export_piece(asset_id,destination):
  lib=_load();asset=next((a for a in lib.get("assets",[]) if a.get("id")==asset_id),None)
  if not asset:raise ValueError("Reusable piece was not found.")
+ _valid_id(asset_id)
  if str(asset.get("source","")).startswith("RPG Maker MZ"):raise ValueError("Imported RPG Maker MZ stock artwork cannot be exported as a Project Shonen asset package.")
  files=[];seen={};pack=copy.deepcopy(asset)
  pack["outputs"]={rep:_portable_output(o,rep,"artwork/primary",files,seen) for rep,o in pack.get("outputs",{}).items()}
@@ -77,6 +84,7 @@ def inspect_package(package):
   if m.get("packageType")!="Project Shonen Reusable Piece":raise ValueError("Not a Project Shonen reusable-piece package.")
   a=m.get("asset",{})
   if not a.get("id") or not a.get("name"):raise ValueError("Package asset metadata is incomplete.")
+  _valid_id(a["id"])
   if str(a.get("source","")).startswith("RPG Maker MZ"):raise ValueError("Stock RPG Maker MZ artwork packages are not accepted.")
   for arc,digest in (m.get("checksums") or {}).items():
    if not _safe_member(arc) or arc not in names:raise ValueError("Package artwork is missing: "+arc)
@@ -103,6 +111,7 @@ def _restore_output(z,o,rep,base):
 def import_piece(package,replace=False,new_id=None):
  m=inspect_package(package);a=copy.deepcopy(m["asset"]);lib=_load();original_id=a["id"]
  if new_id:
+  _valid_id(new_id)
   if any(x.get("id")==new_id for x in lib.get("assets",[])):raise FileExistsError("Asset ID "+new_id+" already exists.")
   a["id"]=new_id
  existing=next((x for x in lib.get("assets",[]) if x.get("id")==a["id"]),None)

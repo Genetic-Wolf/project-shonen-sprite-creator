@@ -20,4 +20,14 @@ dup=root/"dup";dup.mkdir();dp=dup/"finished.png";Image.new("RGBA",a.OUTS["TV"],(
 r=a.import_finished_pngs([tv,dp]);assert sum(x["ok"] for x in r)==1 and any("same piece/output" in x.get("reason","") for x in r)
 # invalid companion does not prevent independently valid managed artwork
 bad=root/"bad.png";bad.write_bytes(b"not png");r=a.import_finished_pngs([fg,bad]);assert any(x["ok"] for x in r) and any(not x["ok"] for x in r)
+# A JPEG renamed .png must never be accepted as native artwork.
+fake=root/"jpeg";fake.mkdir();jp=fake/"finished.png"
+Image.new("RGB",a.OUTS["TV"],(20,30,40)).save(jp,format="JPEG")
+(fake/"project_shonen_artwork.json").write_text((tv.parent/"project_shonen_artwork.json").read_text())
+r=a.import_finished_pngs([jp]);assert len(r)==1 and not r[0]["ok"] and "genuine PNG" in r[0]["reason"]
+# Even registered IDs are untrusted input; reject traversal before constructing a destination.
+unsafe=json.loads(a.LIB.read_text());unsafe["assets"][0]["id"]="../escape";a.LIB.write_text(json.dumps(unsafe))
+(fake/"project_shonen_artwork.json").write_text((tv.parent/"project_shonen_artwork.json").read_text().replace('"A1"','"../escape"'))
+Image.new("RGBA",a.OUTS["TV"],(20,30,40,128)).save(jp,format="PNG")
+r=a.import_finished_pngs([jp]);assert len(r)==1 and not r[0]["ok"] and "unsafe" in r[0]["reason"]
 print("MANAGED ARTWORK INTAKE: PASS")

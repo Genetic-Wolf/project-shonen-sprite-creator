@@ -1,9 +1,10 @@
 from pathlib import Path
-import json,shutil,uuid
+import json,shutil,uuid,re
 from PIL import Image
 import app_paths
 ROOT=app_paths.DATA_ROOT;LIB=ROOT/"library.json";REG=ROOT/"master_registry.json"
 OUTS={"TV":(144,192),"FG":(144,144),"TVD":(144,48),"SV":(576,384),"Variation":(64,64)}
+_SAFE_ID=re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 def _load(path,default):
  try:return json.loads(path.read_text(encoding="utf-8"))
  except Exception:return default
@@ -23,7 +24,9 @@ def _master(asset,reg):
  return next((m for m in reg.get("masters",[]) if m.get("id")==asset.get("masterId") or m.get("key")==asset.get("body")),None)
 def _validate(p,byid,reg):
  try:
-  with Image.open(p) as src:src.verify()
+  with Image.open(p) as src:
+   if src.format!="PNG":return None,"Artwork must be a genuine PNG file."
+   src.verify()
   im=Image.open(p).convert("RGBA")
  except Exception as e:return None,"Unreadable PNG: "+str(e)
  alpha=im.getchannel("A").getextrema()
@@ -33,6 +36,7 @@ def _validate(p,byid,reg):
  if not manifest:return None,"No Project Shonen artwork manifest was found. Import this file from its Creator workspace, or use Create Piece for manual routing."
  aid=manifest.get("assetId");a=byid.get(aid)
  if not a:return None,"Manifest asset is not registered: "+str(aid)
+ if not isinstance(aid,str) or not _SAFE_ID.fullmatch(aid):return None,"Registered asset ID is unsafe for an artwork filename."
  out=manifest.get("output")
  if out not in OUTS:return None,"Manifest output is unsupported: "+str(out)
  if manifest.get("destination")!="assets/outputs/"+str(out):return None,"Workspace destination metadata is invalid or no longer current."
