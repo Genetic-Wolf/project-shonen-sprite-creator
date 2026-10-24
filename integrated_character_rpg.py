@@ -256,6 +256,9 @@ class CharacterBuilder(ttk.Frame):
   available={m.get("name") for m in self.reg.get("masters",[]) if body_master.selectable(m)}
   if self.master_name.get() not in available and available:
    self.master_name.set(sorted(available)[0])
+  master=self.currentmaster()
+  if master:self.selected=[i for i in self.selected if self.compatible(self.lib["assets"][i],master)]
+  else:self.selected=[]
   self.render_bodies()
   self.renderstack()
   self.refresh()
