@@ -256,6 +256,9 @@ class CharacterBuilder(ttk.Frame):
   lookup={a.get("id"):i for i,a in enumerate(self.lib.get("assets",[]))}
   self.selected=[lookup[aid] for aid in old_ids if aid in lookup]
   self.thumbcache.clear()
+  available={m.get("name") for m in self.reg.get("masters",[]) if body_master.selectable(m)}
+  if self.master_name.get() not in available and available:
+   self.master_name.set(sorted(available)[0])
   self.render_bodies()
   self.renderstack()
   self.refresh()
