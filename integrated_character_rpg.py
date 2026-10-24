@@ -60,6 +60,7 @@ class CharacterBuilder(ttk.Frame):
   self.gallery=tk.Canvas(gw,height=135,highlightthickness=0);self.gallerybar=ttk.Scrollbar(gw,orient="horizontal",command=self.gallery.xview);self.gallery.configure(xscrollcommand=self.gallerybar.set)
   self.galleryinner=ttk.Frame(self.gallery);self.gallery.create_window((0,0),window=self.galleryinner,anchor="nw");self.galleryinner.bind("<Configure>",lambda e:self.gallery.configure(scrollregion=self.gallery.bbox("all")))
   self.gallery.pack(fill="x");self.gallerybar.pack(fill="x")
+  ttk.Button(left,text="Reload Imported Artwork",command=self.reload_library).pack(anchor="w",pady=(0,4))
   ttk.Label(left,text="Compatible Pieces",font=("TkDefaultFont",10,"bold")).pack(anchor="w")
   self.countinfo=tk.StringVar(value="0 compatible pieces");ttk.Label(left,textvariable=self.countinfo).pack(anchor="w")
   self.tree=ttk.Treeview(left,columns=("cat","status"),show="tree headings");self.tree.heading("#0",text="Piece");self.tree.heading("cat",text="Category");self.tree.heading("status",text="Outputs");self.tree.pack(fill="both",expand=True);self.tree.bind("<Double-1>",self.add);self.tree.bind("<<TreeviewSelect>>",self.piece_preview)
@@ -247,6 +248,17 @@ class CharacterBuilder(ttk.Frame):
     equipped=i in self.selected
     card(("✓ " if equipped else "")+a.get("name",a.get("id","Piece")),lambda x=i:self.select_index(x),ph)
   card("+ New",self.new_piece)
+ def reload_library(self):
+  """Reload managed artwork without discarding the current character selection."""
+  old_ids=[self.lib["assets"][i].get("id") for i in self.selected if 0<=i<len(self.lib.get("assets",[]))]
+  self.lib=load(LIB,{"assets":[]})
+  self.reg=load(REG,{"masters":[]})
+  lookup={a.get("id"):i for i,a in enumerate(self.lib.get("assets",[]))}
+  self.selected=[lookup[aid] for aid in old_ids if aid in lookup]
+  self.thumbcache.clear()
+  self.render_bodies()
+  self.renderstack()
+  self.refresh()
  def select_index(self,i):
   a=self.lib["assets"][i];cat=a.get("category","Other")
   self.selected=[x for x in self.selected if self.lib["assets"][x].get("category","Other")!=cat]
