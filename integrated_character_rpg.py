@@ -143,9 +143,6 @@ class CharacterBuilder(ttk.Frame):
      if str(idx) in self.tree.get_children():
       self.tree.selection_set(str(idx));self.tree.see(str(idx));self.piece_preview()
   embedded_workflows.new_piece_dialog(self,on_done=created,preferred_body=m.get("name"),preferred_category=preferred)
- def reload_library(self):
-  self.lib=load(LIB,{"assets":[]})
-  self.refresh()
  def none_current(self):
   cat=self.category.get()
   if cat=="All":return
